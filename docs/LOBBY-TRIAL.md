@@ -32,6 +32,39 @@ which folder is your original installation. It never launches the game, operates
 Steam or writes a game file, save, mode field or timer. Applying the candidate
 changes process memory and briefly suspends the test process.
 
+### If the test copy says “Failed to initialize Steam”
+
+Having Steam open is necessary but does not guarantee a direct launch receives
+the app-ID context that Steam normally supplies. The supplied executable calls
+`SteamAPI_Init` at preferred VA 0xf3811d and displays this fatal error when it
+returns false. The subsequent ownership check uses app ID **221040**. That
+identifies the failure path, not its root cause on a particular PC.
+
+For a local test-copy launch, the standard Steamworks app-ID hint is a file named
+`steam_appid.txt` beside the copied executable, containing only `221040`. This
+does not remove the game's later ownership check. Keep Steam running under the
+same Windows user. In PowerShell, for the example test-copy location:
+
+```powershell
+Set-Content -LiteralPath "D:\RE6-Test\steam_appid.txt" -Value "221040" -Encoding ASCII
+Start-Process -FilePath "D:\RE6-Test\BH6.exe" -WorkingDirectory "D:\RE6-Test"
+```
+
+Create this hint only in the separate test copy. Once the main menu appears,
+check the actual executable path before any candidate write:
+
+```powershell
+(Get-Process BH6).Path
+```
+
+It must identify `D:\RE6-Test\BH6.exe` (or your actual test-copy path). A missing
+app ID is only one possible reason for Steam initialization to fail; this
+launch method has not been verified on the owner's PC. If the same error remains
+or the running path is the original installation, stop before applying the
+candidate. The new hint can be removed from the copy to undo this launch setting.
+Do not substitute the original executable path to defeat the trial's intended
+test-copy isolation.
+
 ## Apply at the main menu
 
 From the new kit folder, replace `D:\RE6-Test\BH6.exe` with your actual test-copy

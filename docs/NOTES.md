@@ -287,3 +287,17 @@ published.
 - Original candidate bytes and unresolved timer policy remain unchanged. A
   successful configuration check would still leave actual peer admission,
   No Mercy spawning, extra-slot deaths/results and every-map QA unverified.
+
+## 2026-11-07: test-copy Steam initialization blocker
+
+- Owner reports “failed to initialise steam” / “fatal error” on direct launch
+  of the copied game, despite Steam being open. No candidate application was
+  reported; do not classify this as a patch failure.
+- Checked the supplied image's Steam imports and native startup path. Call at
+  VA0xf3811d is SteamAPI_Init; a false return displays the matching message at
+  VA0x16e53d4 and exits. Subsequent app ownership check at VA0xf38170 supplies
+  0x35f70 (221040). The exact cause of the failed initialization remains unknown.
+- Documented the standard local Steamworks app-ID hint in the copied directory,
+  followed by a running-image-path check. It has not been verified on this PC.
+  No original installation, executable, Steam account or DLL was modified here;
+  the existing trial guards and candidate bytes remain unchanged.
