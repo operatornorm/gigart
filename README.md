@@ -30,8 +30,11 @@ It does not implement a timer policy or establish four-player No Mercy support.
 The ordinary `probe_windows.py` collector still requests read-only access only.
 
 The next stage is the [three-client joining check](docs/THREE-CLIENT-ADMISSION.md):
-host-only candidate, joining clients initially unmodified, first one peer and
-then a second, staying in standard Mercenaries' waiting lobby. No further
+host-only candidate, joining clients initially unmodified, normal Steam invites
+sent to both while the host is alone, then accepted one at a time, staying in
+standard Mercenaries' waiting lobby. Invitation availability and Steam/game
+joinability remain unverified; pending invitations do not override a full lobby.
+No further
 unchanged solo or empty-lobby baseline is needed. This separates admission from
 the later No Mercy gameplay target.
 

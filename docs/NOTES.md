@@ -346,3 +346,21 @@ published.
   from +0xad10. The shipped DLL/interface and live call arguments remain
   unobserved. Recorded source and limits in THREE-CLIENT-ADMISSION.md; no
   speculative additional patch was made.
+
+## 2026-11-07: invitation availability gate
+
+- Owner reports the usual two-player lobby flow disables the option to invite
+  another participant once the partner joins. This was not a report of a failed
+  peer test with the candidate; no extra peer has yet been observed here.
+- Corrected the joining protocol's assumption that the second invite could be
+  sent after the first peer joined. Proposed normal Steam invitations to both
+  participants while the host is alone, then sequential acceptance. This is a
+  diagnostic ordering, not a proven bypass of full-lobby/joinability checks.
+- Traced native SlotPublicMax/SlotPublicOpen metadata strings, the public-open
+  metadata update and the separate lobby-type/joinability wrapper at 0x41faa0.
+  Steam SDK interface layout identifies SetLobbyType/SetLobbyJoinable calls;
+  the latter passes false for internal type3. Source and limitations recorded
+  in THREE-CLIENT-ADMISSION.md. Live emitted values remain unknown.
+- No candidate bytes, memory-writing tools or process state changed. A disabled
+  invitation UI must be distinguished from a rejected pending invitation and
+  a game-level slot rejection before choosing a further implementation change.

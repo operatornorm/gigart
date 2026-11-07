@@ -28,8 +28,14 @@ a joining diagnostic, not a gameplay acceptance test.
    this first experiment applies the candidate to the host only. Historical
    trainer documentation supports host-only operation, but that remains an
    experimental assumption for this port.
-3. Invite one participant normally through the game/Steam UI. Once their join
-   attempt settles, keep both participants in the waiting lobby. Record whether
+3. Use **normal Steam game invitations**. While the host is still alone, try
+   sending an invitation to **both** participants before either accepts. Ask
+   them to wait, then have only the first participant accept. This avoids relying
+   on the host's invite button remaining enabled after one peer joins; it does
+   not reserve extra slots or override a full/closed lobby. If even the second
+   invitation cannot be sent while alone, record that exact UI state and stop
+   at that boundary. Once the first join attempt settles, keep both clients in
+   the waiting lobby. Record whether
    the joining client also sees the session and whether any exact error appears.
 4. On the host, run this read-only capture and keep the resulting JSON as the
    **two-client** report:
@@ -38,13 +44,18 @@ a joining diagnostic, not a gameplay acceptance test.
    py -3 .\probe_windows.py --pid (Get-Process BH6).Id --context mercenaries-lobby --samples 6 --delay 10
    ```
 
-5. Invite the next participant while the first stays connected. Keep all three
+5. While the first participant stays connected, have the second participant
+   accept their **already-sent Steam invitation**. If accepted, keep all three
    clients in the waiting lobby; **do not start a round**. Run the same host
    capture command and identify that JSON as the **three-client** report.
 
 Return both host captures with the observed joining outcomes. If the third
 client is refused, capture the host while the first remains connected and quote
-the third client's exact error. Do not repeatedly retry, change offsets or apply
+the third client's exact error. Note whether the host's invitation option is
+disabled and whether the pending invite can still be accepted. A disabled
+invite button, a failed Steam-lobby join and a game-level slot rejection are
+distinct observations; none has yet been tested with an additional peer in
+this candidate. Do not repeatedly retry, change offsets or apply
 patches to the joining clients to conceal that first failure.
 
 Where a joining client already has Python 3.10+, an additional read-only capture
@@ -97,3 +108,31 @@ The shipped steam_api.dll has not been inspected here, and no live Steam call
 was captured. This is a static interface-layout inference, not a measured Steam
 member limit or proof of third-client compatibility. No additional patch is
 justified by this trace, and the original three-site candidate remains unchanged.
+
+## Invitation availability is a separate gate
+
+The owner reports that the normal two-player flow disables further invitations
+once a partner joins. That has not yet been reproduced with this candidate:
+the returned expanded-lobby inspection had only the host present. The earlier
+instruction to simply invite another participant after the first joined was
+an unverified assumption and has been corrected above.
+
+The native wrapper advertises metadata named `SlotPublicMax` and `SlotPublicOpen`
+(strings at VAs 0x172fe5c and 0x172fe6c). For example, the path at 0x41ec89–0x41ece8
+formats public capacity minus public usage and passes it to the Steam lobby
+metadata setter. The helper at 0x41fa70 derives a lobby-type value from a flag
+and the same free-capacity difference. At 0x41faa0–0x41fb1d, another helper
+updates vtable entries +0x84 and +0x88; these match `SetLobbyType` and
+`SetLobbyJoinable` in the published ISteamMatchmaking009 interface layout.
+The latter is passed false when the internal type equals 3.
+
+The header explicitly documents that a lobby with joinability false cannot be
+joined even by an invited friend. Invitations do not establish reserved member
+slots. Thus sending both invitations in advance is a way to distinguish an
+invitation-UI limitation from subsequent join rejection, **not a verified
+workaround for capacity or joinability enforcement**.
+
+No live values from these network-manager fields or Steam's actual member
+limit have been returned. A six-entry game slot table alone cannot prove that
+the published capacity, invitation availability or joinability changed. The
+currently observed successful result remains native slot initialization only.
