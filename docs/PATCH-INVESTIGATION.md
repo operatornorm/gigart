@@ -5,6 +5,11 @@ Updated 2026-11-07. Primary acceptance target: at least four real players in
 No Mercy on every map. Standard Mercenaries remains a separate compatibility target
 from the original request.
 
+Follow-up: [session admission and player-object tracing](SESSION-ADMISSION.md)
+now identifies the native six-slot admission search, separate map/no-slot
+rejection paths and the eight-entry player-object table. Schema 3 observes those
+fields read-only; new live reads and all multiplayer behavior remain unverified.
+
 ## What was actually traced
 
 Source: [official Fluffy manager archive](https://fluffyquack.com/tools/modmanager.zip),

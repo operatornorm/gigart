@@ -170,8 +170,33 @@ python -m unittest discover -s tests -v
 ```
 
 The private-executable test is skipped unless RE6_TEST_INPUT points to the supplied
-fixture. A suite with that skip must not be reported as the full 18-test private
+fixture. A suite with that skip must not be reported as full private-executable
 validation. No game executable belongs in a commit, archive or publication.
+
+### Session diagnostics update (2026-11-07)
+
+The current collector writes schema 3 and adds bounded lobby-slot observations
+and a separate player-object presence table. Static tracing found a six-entry
+host admission search and distinct no-free-slot and map-availability branches.
+These additions make admission and object creation separately observable;
+they do not increase the candidate's validation level.
+
+The current suite passes **32 offline tests**, including the private-executable
+check; without that fixture, 31 pass and one is skipped. The new session and
+object-table reads have not yet been verified on Windows. See the
+[session admission analysis](docs/SESSION-ADMISSION.md) for native evidence,
+field meanings and limits. No additional game patch or timer write was added.
+
+For a new read-only capture of a normal Mercenaries two-player Create Game lobby, with the existing
+trainer deactivated, run from this updated kit's directory:
+
+```powershell
+py -3 .\probe_windows.py --pid (Get-Process BH6).Id --context mercenaries-lobby --samples 20 --delay 10
+```
+
+Return to the lobby during the delay. This records slot configuration and player
+object presence candidates; the generated `private/probe-*.json` stays private.
+It does not apply the offline candidate or request a four-player playtest.
 
 ## Remaining development access
 
@@ -188,6 +213,7 @@ an original Steam installation or count solo timer observation as a map PASS.
 - [Trainer compatibility and sources](docs/RESEARCH.md)
 - [Native patch investigation and map test matrix](docs/PATCH-INVESTIGATION.md)
 - [Research notes](docs/NOTES.md)
+- [Session admission and player-object observations](docs/SESSION-ADMISSION.md)
 
 This repository contains the RE6 work originally developed in the cloud setup
 workspace. Game executables, assets, raw captures and private machine notes are

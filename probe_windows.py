@@ -11,6 +11,7 @@ import struct
 import time
 
 from patch_candidate import ROOT, Rejected, digest, inspect_bytes, load_manifest
+from session_probe import player_objects_snapshot, session_snapshot
 
 CONTEXTS = ("unspecified", "main-menu", "no-mercy-lobby", "no-mercy-running",
             "mercenaries-lobby", "mercenaries-running", "other")
@@ -76,6 +77,8 @@ def snapshot(read, base, spec, disk):
             "native_elapsed_field_candidate": elapsed,
             "native_timer_state_candidate": timer_state,
             "timer_candidates_same_address": same_address,
+            "session": session_snapshot(read, base, candidates["mode_root_rva"]),
+            "player_objects": player_objects_snapshot(read, base, candidates["player_manager_root_rva"]),
             "status": "OBSERVATIONS ONLY; NOT A GAMEPLAY TEST"}
 
 
@@ -187,7 +190,7 @@ def main():
             observations.append(snapshot(reader.read, base, spec, disk))
             if i + 1 < args.samples:
                 time.sleep(args.interval)
-        report = {"schema": 2, "access": "READ ONLY", "gameplay_test": False,
+        report = {"schema": 3, "access": "READ ONLY", "gameplay_test": False,
                   "context_user_reported": args.context,
                   "exe_sha256": digest(disk), "module_base": hex(base),
                   "module_size": size, "samples": observations}

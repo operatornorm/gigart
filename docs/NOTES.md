@@ -195,3 +195,24 @@ published.
   gates stay NOT RUN, including Urban Chaos; a solo diagnostic is not a map PASS.
 - Full game assets, controlled Windows execution and real-client bots are still
   unavailable here. No game install/save changed, account used or work published.
+
+
+## 2026-11-07: continued in gigart
+
+- The source kit and existing research were transferred to this repository and
+  pushed at 98347c0. Earlier statements that nothing was published describe those
+  earlier investigation steps. Private binaries and captures remain excluded.
+- Traced host admission at 0x5197b0 to the six-entry free-slot helper at 0x5515a0,
+  response bytes for no-free-slot and map-mask rejection, and the success-path
+  slot-state assignment. See SESSION-ADMISSION.md for addresses and limitations.
+- Located sPlayer metadata and its instance global; getter 0x590b00 reads eight
+  player-object entries at manager +0x24. Non-null pointers are presence candidates,
+  not alive/controllable/client proof. No extra executable patch was introduced.
+- Added schema-3 read-only session and player-object observations, explicit
+  unknown handling, duplicate-object detection and root-change discard behavior.
+- All 32 offline tests passed with the private executable fixture: 18 existing
+  checks and 14 new observation/interpretation checks. CLI help and diff checks
+  passed. New Windows reads, multiplayer and all-map QA have not run.
+- Next observation target is the normal Mercenaries two-player Create Game lobby,
+  not another timer-identification capture. Real-client admission/spawning,
+  timer-write policy, extra-slot deaths/results and all maps remain unverified.

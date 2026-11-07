@@ -42,6 +42,7 @@
     "all_maps_validated": false
   },
   "probe_candidates": {
+    "player_manager_root_rva": 20776040,
     "game_info_root_rva": 20771996,
     "mode_root_rva": 20771924,
     "stage_field_offset": 266916,
