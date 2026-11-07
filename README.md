@@ -183,7 +183,9 @@ they do not increase the candidate's validation level.
 
 The current suite passes **32 offline tests**, including the private-executable
 check; without that fixture, 31 pass and one is skipped. The new session and
-object-table reads have not yet been verified on Windows. See the
+object-table reads have now succeeded in a confirmed solo No Mercy capture:
+one populated slot and one player object in all twenty samples. Online-lobby
+values remain unverified. See the
 [session admission analysis](docs/SESSION-ADMISSION.md) for native evidence,
 field meanings and limits. No additional game patch or timer write was added.
 
@@ -194,7 +196,9 @@ trainer deactivated, run from this updated kit's directory:
 py -3 .\probe_windows.py --pid (Get-Process BH6).Id --context mercenaries-lobby --samples 20 --delay 10
 ```
 
-Return to the lobby during the delay. This records slot configuration and player
+Return to the lobby during the delay and stay there without starting a round.
+The `--context` argument is only a label; it does not select a game mode or screen.
+This records slot configuration and player
 object presence candidates; the generated `private/probe-*.json` stays private.
 It does not apply the offline candidate or request a four-player playtest.
 

@@ -216,3 +216,27 @@ published.
 - Next observation target is the normal Mercenaries two-player Create Game lobby,
   not another timer-identification capture. Real-client admission/spawning,
   timer-write policy, extra-slot deaths/results and all maps remain unverified.
+
+## 2026-11-07: live schema-3 solo baseline
+
+- Received twenty Windows samples for the exact pinned executable. The command
+  label says mercenaries-lobby, but the user explicitly confirms solo No Mercy
+  was running. Recorded the confirmed context instead of treating the label as
+  automatic state detection. Raw capture and analysis remain ignored in local/.
+- Mode80/stage1212 throughout. All new session and player-object read groups
+  have stable roots and complete fields. Slot0 state2/kind3; other seven empty.
+  One distinct player object at index0, no duplicates. The new collector's
+  reads now have Windows observation evidence in a solo context.
+- Session-type candidate4, create-capacity candidate0, stage-index candidate0,
+  randomized slots0. These values are not evidence of an online-lobby failure;
+  the host admission path checks for session-type1. See SESSION-ADMISSION.md.
+- Original instructions remained at all three candidate spans; all historical
+  sites matched disk. Timer advanced with a roughly sixty-second positive
+  adjustment, consistent with a time bonus; no bonus event was independently
+  observed and no timer freeze is inferred.
+- No new executable patch, game write or gameplay test. The existing offline
+  suite remains the previous 32-test result; only documentation and observation
+  metadata changed for this capture. No repeated solo/timer baseline needed.
+- Next missing capture remains the standard Mercenaries two-player Create Game
+  lobby, staying there without starting a round. Clarified that --context only
+  labels the report; it does not switch the game mode or screen.

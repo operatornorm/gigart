@@ -8,7 +8,8 @@ from the original request.
 Follow-up: [session admission and player-object tracing](SESSION-ADMISSION.md)
 now identifies the native six-slot admission search, separate map/no-slot
 rejection paths and the eight-entry player-object table. Schema 3 observes those
-fields read-only; new live reads and all multiplayer behavior remain unverified.
+fields read-only. A confirmed solo No Mercy capture now observes the new fields
+successfully; online-lobby readings and all multiplayer behavior remain unverified.
 
 ## What was actually traced
 

@@ -59,6 +59,9 @@
     "timer_samples": 20,
     "visible_clock_correlated": true,
     "all_maps_validated": false,
-    "four_clients_validated": false
+    "four_clients_validated": false,
+    "session_probe_solo_no_mercy_samples": 20,
+    "solo_player_object_entries_observed": 1,
+    "online_lobby_observed": false
   }
 }

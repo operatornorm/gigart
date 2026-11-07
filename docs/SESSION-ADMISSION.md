@@ -1,7 +1,8 @@
 # Session admission and player-object observations
 
 Status, 2026-11-07: static tracing in the exact pinned v1.1.0.0 executable;
-new collector fields tested offline, not yet captured on Windows. No new game
+new collector fields now read successfully in a confirmed solo No Mercy capture.
+Online-lobby values remain unverified. No new game
 patch has been added, and no multiplayer or map has passed gameplay QA.
 
 All addresses below are preferred virtual addresses in BH6.exe (base 0x400000),
@@ -101,13 +102,14 @@ groups are not a synchronized cross-object snapshot.
 
 The new fields have synthetic-memory tests, including missing fields, duplicate
 objects and changing roots. The complete suite has **32 passing offline tests**
-when run with the private executable fixture. New live reads still need Windows
-verification. No new executable bytes were changed.
+when run with the private executable fixture. New live reads are now observed on
+Windows in the solo context below. No new executable bytes were changed.
 
 A useful next diagnostic is a normal, unmodified **Mercenaries two-player Create
-Game lobby**. This verifies the newly traced lobby fields without assuming a
+Game lobby**, staying there throughout the capture without starting a match.
+This verifies the newly traced lobby fields without assuming a
 No Mercy online-lobby route that has not been demonstrated here. A separate
-normal solo match capture may later establish the object-presence baseline.
+normal solo match capture has now established a one-object baseline below.
 These are observation checks, not a four-person acceptance test. Keep the
 existing trainer deactivated so stale legacy writes do not confound the result.
 No repeat of timer identification is needed.
@@ -116,3 +118,43 @@ Remaining development gates are actual session capacity advertisement, controlle
 third/fourth-client admission, slot-to-player-object mapping, No Mercy spawning,
 timer policy, extra-player deaths/results and every map. This Linux workspace
 does not have a complete game installation or Windows client execution access.
+
+## Confirmed solo No Mercy capture
+
+A returned schema-3 capture contains twenty samples over 19.0153 seconds. Its
+command-line label says `mercenaries-lobby`, but the person collecting it
+explicitly confirmed that **solo No Mercy was running**. The label is user-supplied
+metadata and must not override that confirmation or the live readings.
+
+All twenty samples contain:
+
+| Observation | Value |
+|---|---|
+| Exact executable | Pinned v1.1.0.0 SHA-256 above |
+| Mode and actual stage fields | 80 / 1212 (the previously correlated Urban Chaos stage) |
+| Session-type candidate (+0x74) | 4 |
+| Create-capacity candidate | 0 |
+| Slot 0 | State 2, kind 3 |
+| Slots 1–7 | State 0, kind 0 |
+| Randomized slot entries | All zero |
+| Six-slot helper's available entries | None of kind 1 or kind 2 |
+| Player-object table | One non-null entry at index 0, seven null entries, no duplicates |
+| Read groups | Root stable; all new fields readable |
+| Current patch sites | Original instructions throughout |
+| Historical trainer targets | Matched disk throughout |
+
+The countdown changes from 108.83954 to 149.82019 seconds, with a positive
+58.99982-second step between two approximately one-second samples. That is
+consistent with a 60-second time bonus; its cause was not independently observed.
+Elapsed time advances by 19.01643 seconds. This is not evidence of a timer freeze.
+
+The recorded session-type value is different from the value 1 required by the
+host admission path at 0x519823. This capture therefore cannot validate that
+host path. Empty join-slot configuration and zero create capacity in a solo
+session are not a reproduced online admission failure.
+
+The lobby's stage-index candidate is zero even though the actual stage field
+is 1212. Do not translate that zero into a map identity or assume create-lobby
+fields are initialized meaningfully during a solo match. The new reads have
+live observation evidence in this context; their online semantics, object
+ownership and four-client behavior remain unverified.
