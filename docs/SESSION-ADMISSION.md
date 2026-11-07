@@ -191,3 +191,17 @@ host/available partner slot from a spawned player object. It does not show
 expanded capacity, actual admission, index-to-object ownership or four-player
 No Mercy. The [selector execution check](NATIVE-SELECTOR-CHECK.md) is a separate
 offline development step; it changes no game bytes or gameplay QA status.
+
+## First native-candidate lobby observation
+
+The subsequent Windows apply report shows original-to-candidate transitions at
+all three code spans, with the menu state unchanged and historical targets still
+matching disk. A fresh standard Mercenaries duo-lobby snapshot then records mode
+30, session type 1, capacity 6, five free kind-1 entries at indices 1–5, and the
+six-element randomized permutation 2,1,3,4,5,0. Entries 6–7 remain disabled; no
+player objects exist in the waiting lobby.
+
+This corroborates the anticipated initializer behavior in the real process.
+It does not establish a network-service member limit, actual peer admission,
+client ownership, spawning or No Mercy compatibility. See the
+[trial result and restoration step](LOBBY-TRIAL.md#first-returned-windows-result-2026-11-07).

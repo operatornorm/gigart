@@ -3,13 +3,15 @@
 This is the next development experiment, **not a finished four-player No Mercy
 mod**. The native candidate is unchanged. `native_trial.py` can now apply or
 restore its three code spans in one already-running Windows test process.
-Its Windows API backend has not been exercised on a real Windows process here.
+The first returned Windows apply/inspect reports now show successful application
+and six-slot initialization. Live restore and rollback have not been observed.
 The trial can fail, freeze or crash the test process; it belongs on an isolated
 test copy. No game executable is included in the kit.
 
 The first question is narrowly scoped: **does entering a fresh lobby after the
 native changes initialize six distinct slots and five available partner entries?**
-That result would still leave network admission, No Mercy spawning, timer policy,
+The first returned trial answers this configuration question positively. It
+still leaves network admission, No Mercy spawning, timer policy,
 deaths/results, subsequent rounds and all maps unverified.
 
 ## Prepare the test copy
@@ -137,6 +139,39 @@ not unrelated trainer changes. Restart with Fluffy's trainer deactivated if the
 old trainer locations differ from disk. Closing the process remains the way to
 discard an unknown in-memory state without editing the installation.
 
+### First returned Windows result (2026-11-07)
+
+The apply report shows the original instructions at all three sites before
+application and the exact candidate bytes afterward. The preflight snapshot is
+the observed menu scene, mode 0, session type 0, empty slot configuration and no
+player objects. Neither snapshot shows any mode/timer change. Historical trainer
+locations match disk before and after.
+
+The subsequent fresh standard Mercenaries duo-lobby inspection records:
+
+| Field | Result |
+|---|---|
+| Mode / session type | 30 / 1 |
+| Capacity candidate | 6 |
+| Host slot 0 | Kind 3, state 1 |
+| Partner entries 1–5 | Kind 1, state 0: five available entries |
+| Entries 6–7 | Disabled |
+| Randomized prefix | 2, 1, 3, 4, 5, 0: six distinct values |
+| Player objects | None, as expected while waiting alone in the lobby |
+| Native code | Exact candidate spans still present; historical targets match disk |
+
+The assessment was independently recomputed from the returned fields rather
+than trusting the report's assessment string. This is a **six-slot initialization
+observation**, not a successful six-client Steam lobby or a playable multiplayer
+result. Only one apply and one lobby snapshot have been returned. No repeat of
+this same unchanged configuration capture is needed.
+
+The immediate next check is live restoration: leave the lobby, return to the
+main menu and run the restore command above, then return its private report.
+If the process has already been closed, its in-memory changes were discarded;
+do not reapply merely to produce an undo report. Restore/rollback behavior is
+still backed by synthetic tests until an actual restore report is returned.
+
 ## Validation performed here
 
 All **52 offline tests** pass on the current Linux x86-64 host with its existing
@@ -144,5 +179,8 @@ compiler and the private executable fixture. Seventeen new trial tests cover
 apply/restore equality, complete preflight, historical-site guards, changed code,
 partial writes, bad readback, interruption, rollback failure, menu restrictions,
 candidate-lobby interpretation and mocked suspension/protection/cache behavior.
-Those Windows API mocks are not evidence that the real backend works on Windows.
-No actual game process was suspended or written, and no multiplayer round ran.
+Those Windows API mocks are not evidence of a Windows run. Separately, the
+returned apply report and subsequent lobby observation now provide live evidence
+for one successful Windows application path. The cloud itself has not opened a
+Windows game process. Live restore/rollback, peer joining and gameplay remain
+unverified; no multiplayer round was run as part of this trial.

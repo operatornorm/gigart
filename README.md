@@ -19,8 +19,10 @@ to read-only inspection. First use is a fresh-lobby configuration check on an
 isolated test copy; no round or extra participant is needed. Follow the complete
 [lobby trial instructions](docs/LOBBY-TRIAL.md), including preparation and undo.
 
-All **52 offline tests** pass on the current Linux host. The new Windows API
-backend is tested with mocks, not a real Windows process; it remains experimental.
+All **52 offline tests** pass on the current Linux host. Returned Windows reports
+now show the first successful native application and fresh six-slot lobby
+initialization: capacity 6, five free partner entries and distinct randomized
+indices. Actual extra-client joining and live restore/rollback remain unverified.
 It does not implement a timer policy or establish four-player No Mercy support.
 The ordinary `probe_windows.py` collector still requests read-only access only.
 

@@ -301,3 +301,26 @@ published.
   followed by a running-image-path check. It has not been verified on this PC.
   No original installation, executable, Steam account or DLL was modified here;
   the existing trial guards and candidate bytes remain unchanged.
+
+## 2026-11-07: first Windows native application and six-slot lobby
+
+- Owner reports the copied game launches after adding the app-ID hint. The
+  Windows trial then reports successful apply from its accepted main-menu state.
+  Returned apply snapshot: mode0/scene1102, session type0, empty slots/objects;
+  all three spans original before and exact candidate afterward. Historical
+  trainer targets match disk and observed timer/mode fields remain unchanged.
+- Fresh standard Mercenaries duo-lobby snapshot: mode30, session type1,
+  capacity6, host kind3/state1, partner slots1–5 kind1/state0, slots6–7 disabled.
+  Randomization prefix2,1,3,4,5,0 is a permutation of0–5; player table empty.
+- Independently compared the reported byte strings with candidate.json and
+  recomputed the lobby assessment. It meets the six-slot configuration target.
+  Raw reports, heap addresses and integrity hashes remain in ignored local/.
+- This is one real Windows application and one initialization observation,
+  not measured Steam member capacity, an extra-peer join or gameplay PASS.
+  Live restore/rollback, No Mercy spawning and all-map behavior remain unknown.
+- Next check: leave the lobby, return to main menu and restore original code;
+  inspect the returned restore report. If process already closed, do not
+  reapply just to undo. No further identical six-slot capture is required.
+- Only observation metadata/documentation changed for these reports. The
+  existing 52-test offline result remains the latest suite run; no new tests
+  or candidate replacement bytes were introduced in this evidence update.

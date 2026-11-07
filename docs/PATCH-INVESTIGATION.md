@@ -13,6 +13,12 @@ successfully; actual peer joining and all expanded multiplayer behavior remain
 unverified. The [native selector check](NATIVE-SELECTOR-CHECK.md) passes in a
 narrow Linux x86-64 fixture, not a full Windows/game execution environment.
 
+The [first returned native lobby trial](LOBBY-TRIAL.md) now reports all three
+candidate spans applied on Windows and a fresh standard Mercenaries lobby with
+capacity 6, five available partner entries and six distinct randomized indices.
+This is the first real initialization observation; peer admission, gameplay,
+live restoration and four-player No Mercy remain unverified.
+
 ## What was actually traced
 
 Source: [official Fluffy manager archive](https://fluffyquack.com/tools/modmanager.zip),
