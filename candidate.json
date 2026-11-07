@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "status": "ANALYSIS CANDIDATE ONLY; NOT GAMEPLAY VALIDATED",
+  "target_version_resource": "1.1.0.0",
+  "image_base": 4194304,
+  "machine": 332,
+  "size_bytes": 20914128,
+  "input_sha256": "b8bceaf09272d5f30b89940737763afa6dfb78647c81165af1aa8a10d0afeb35",
+  "candidate_sha256": "04a9ccffd76f65806c371c380c5e245125ca532a0725404d071ef317498667fa",
+  "patches": [
+    {
+      "name": "create_capacity",
+      "rva": 6368477,
+      "file_offset": 6365405,
+      "expected_hex": "83c002",
+      "replacement_hex": "83c006",
+      "context_offset": 6365389,
+      "context_hex": "fc3e00008b86780100008bbe7c01000083c0023bc37e2f558d68ffb9203f0000896c24"
+    },
+    {
+      "name": "slot_count",
+      "rva": 6359841,
+      "file_offset": 6356769,
+      "expected_hex": "c7474c02000000",
+      "replacement_hex": "c7474c06000000",
+      "context_offset": 6356753,
+      "context_hex": "600100000000c6876201000000895748c7474c0200000033f6bd3c3f000090b9a4de8601e8f6c7"
+    },
+    {
+      "name": "slot_assignment",
+      "rva": 6359866,
+      "file_offset": 6356794,
+      "expected_hex": "8bc883e10133c0ba01000000d3e285d374094083f10183f8027cec",
+      "replacement_hex": "31d28b4f4cf7f189d1b801000000d3e085c375e2eb059090909090",
+      "context_offset": 6356778,
+      "context_hex": "bd3c3f000090b9a4de8601e8f6c746008bc883e10133c0ba01000000d3e285d374094083f10183f8027cec8b1554f47c01b801000000d3e0890c2a"
+    }
+  ],
+  "runtime_requirements": {
+    "timer_policy": "UNRESOLVED POLICY: mode-root +0x486c countdown observed in solo No Mercy / Urban Chaos; legacy 120.0 freeze not applied or multiplayer-validated",
+    "gameplay_tests_run": false,
+    "all_maps_validated": false
+  },
+  "probe_candidates": {
+    "game_info_root_rva": 20771996,
+    "mode_root_rva": 20771924,
+    "stage_field_offset": 266916,
+    "timer_relative_to_game_info": -1940,
+    "timer_status": "COUNTDOWN OBSERVED IN SOLO NO MERCY / URBAN CHAOS; NO WRITE OR MULTIPLAYER VALIDATION",
+    "native_timer_field_offset": 18540,
+    "native_elapsed_field_offset": 18548,
+    "native_timer_state_offset": 18532
+  },
+  "runtime_observations": {
+    "no_mercy_mode_value": 80,
+    "observed_stage_id": 1212,
+    "observed_stage_label": "Urban Chaos",
+    "timer_samples": 20,
+    "visible_clock_correlated": true,
+    "all_maps_validated": false,
+    "four_clients_validated": false
+  }
+}

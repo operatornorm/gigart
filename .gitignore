@@ -1,0 +1,9 @@
+private/
+__pycache__/
+*.zip
+*.exe
+*.dll
+*.dmp
+local/
+attachments/
+*.pyc
