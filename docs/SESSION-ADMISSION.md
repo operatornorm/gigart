@@ -1,8 +1,8 @@
 # Session admission and player-object observations
 
 Status, 2026-11-07: static tracing in the exact pinned v1.1.0.0 executable;
-new collector fields now read successfully in a confirmed solo No Mercy capture.
-Online-lobby values remain unverified. No new game
+new collector fields now read successfully in solo No Mercy and a host-lobby
+capture. Actual peer joining remains unverified. No new game
 patch has been added, and no multiplayer or map has passed gameplay QA.
 
 All addresses below are preferred virtual addresses in BH6.exe (base 0x400000),
@@ -103,16 +103,12 @@ groups are not a synchronized cross-object snapshot.
 The new fields have synthetic-memory tests, including missing fields, duplicate
 objects and changing roots. The complete suite has **32 passing offline tests**
 when run with the private executable fixture. New live reads are now observed on
-Windows in the solo context below. No new executable bytes were changed.
+Windows in the solo and lobby contexts below. No new executable bytes were changed.
 
-A useful next diagnostic is a normal, unmodified **Mercenaries two-player Create
-Game lobby**, staying there throughout the capture without starting a match.
-This verifies the newly traced lobby fields without assuming a
-No Mercy online-lobby route that has not been demonstrated here. A separate
-normal solo match capture has now established a one-object baseline below.
-These are observation checks, not a four-person acceptance test. Keep the
-existing trainer deactivated so stale legacy writes do not confound the result.
-No repeat of timer identification is needed.
+The normal, unmodified **Mercenaries two-player Create Game lobby** observation
+has now been returned, completing the unchanged solo/lobby baseline below.
+These are observation checks, not a four-person acceptance test. No repeated
+unchanged lobby, solo or timer-identification capture is needed.
 
 Remaining development gates are actual session capacity advertisement, controlled
 third/fourth-client admission, slot-to-player-object mapping, No Mercy spawning,
@@ -158,3 +154,40 @@ is 1212. Do not translate that zero into a map identity or assume create-lobby
 fields are initialized meaningfully during a solo match. The new reads have
 live observation evidence in this context; their online semantics, object
 ownership and four-client behavior remain unverified.
+
+## Returned duo-lobby baseline
+
+A subsequent schema-3 report labelled `mercenaries-lobby`, returned following
+the instruction to stay in Create Game's waiting lobby, contains twenty stable
+samples over **19.016589 seconds**. This is consistent with the intended host
+lobby, with the following fully readable fields in every sample:
+
+| Observation | Value |
+|---|---|
+| Session-type candidate | 1, matching the host admission path's required value |
+| Create-capacity candidate | 2 |
+| Slot 0 | Kind 3, state 1 |
+| Slot 1 | Kind 1, state 0: the one available kind-1 partner entry |
+| Slots 2–7 | Kind 0, state 0 |
+| Randomization array | Prefix 1, 0; remaining values zero |
+| Player-object table | All eight entries null, stable manager root |
+| Current and historical code sites | Original current code; historical locations matched disk |
+
+The six-slot admission helper would find index 1 for a kind-1 request. A request
+of kind 2 would find no eligible entry. This is a conditional interpretation of
+the observed table, not an observed peer request or successful network join.
+The create-capacity field is not a measurement of the Steam/network member limit.
+
+The mode field remains **80**, the actual-stage field is **1102**, and the timer
+(131.84122) and elapsed field (48.15787) remain constant throughout. Unlike the
+running solo baseline, this has no advancing countdown or player objects.
+Do not classify a running No Mercy match, or decide the selected lobby mode,
+from mode 80 alone. Stored timer/mode values can outlive a gameplay context;
+the exact persistence mechanism has not been traced. Do not call a constant
+menu timer a trainer freeze or treat the menu scene as a selected match map.
+
+This corroborates the native two-slot configuration and separates a configured
+host/available partner slot from a spawned player object. It does not show
+expanded capacity, actual admission, index-to-object ownership or four-player
+No Mercy. The [selector execution check](NATIVE-SELECTOR-CHECK.md) is a separate
+offline development step; it changes no game bytes or gameplay QA status.

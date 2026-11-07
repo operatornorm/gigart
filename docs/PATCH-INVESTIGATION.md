@@ -8,8 +8,10 @@ from the original request.
 Follow-up: [session admission and player-object tracing](SESSION-ADMISSION.md)
 now identifies the native six-slot admission search, separate map/no-slot
 rejection paths and the eight-entry player-object table. Schema 3 observes those
-fields read-only. A confirmed solo No Mercy capture now observes the new fields
-successfully; online-lobby readings and all multiplayer behavior remain unverified.
+fields read-only. Solo No Mercy and host-lobby captures now observe those fields
+successfully; actual peer joining and all expanded multiplayer behavior remain
+unverified. The [native selector check](NATIVE-SELECTOR-CHECK.md) passes in a
+narrow Linux x86-64 fixture, not a full Windows/game execution environment.
 
 ## What was actually traced
 

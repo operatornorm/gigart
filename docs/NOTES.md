@@ -240,3 +240,27 @@ published.
 - Next missing capture remains the standard Mercenaries two-player Create Game
   lobby, staying there without starting a round. Clarified that --context only
   labels the report; it does not switch the game mode or screen.
+
+## 2026-11-07: duo-lobby baseline and native selector check
+
+- The subsequent twenty-sample schema-3 report is consistent with the requested
+  waiting host lobby: session-type1, capacity2, slot0 kind3/state1, slot1
+  kind1/state0, remaining slots disabled. Randomization prefix1,0. Player-object
+  table fully readable and empty. All session/object fields stable across
+  19.016589 seconds; raw capture and private analysis remain ignored.
+- The native helper would find partner index1 for a kind1 request. This is not
+  an actual join or a measured network-service member limit. All current code
+  spans original and historical sites matched disk throughout.
+- Mode80 persists while actual-stage1102 and timer/elapsed values are constant.
+  That combination shows why a mode value alone cannot classify a running
+  match or selected lobby mode. No repeated unchanged lobby/solo capture needed.
+- Added a fixture that executes the exact candidate selector bytes using
+  instructions shared between x86 and x86-64, a low-address object and a bounded
+  synthetic RNG. All 624 occupancy/input cases pass, plus repeated-occupied-draw
+  and full-mask exhaustion checks. Full 32-bit ABI, real RNG and Windows remain
+  untested. Earlier failed ELF32/compatibility attempts are not counted as passes.
+- The fixture initially failed to assemble because of a stray character; fixed
+  that source error and reran successfully. No game executable was launched.
+- The full suite now passes 35 offline tests on the current host with the private
+  fixture and existing compiler. No candidate replacement bytes changed, no
+  memory/game-install writes occurred and no gameplay QA status increased.

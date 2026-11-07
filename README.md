@@ -181,16 +181,18 @@ host admission search and distinct no-free-slot and map-availability branches.
 These additions make admission and object creation separately observable;
 they do not increase the candidate's validation level.
 
-The current suite passes **32 offline tests**, including the private-executable
-check; without that fixture, 31 pass and one is skipped. The new session and
-object-table reads have now succeeded in a confirmed solo No Mercy capture:
-one populated slot and one player object in all twenty samples. Online-lobby
-values remain unverified. See the
+The current suite passes **35 offline tests** on Linux x86-64 with the existing
+C compiler and private executable fixture. Three native selector checks are
+skipped on other platforms or without a compiler; the private-executable test
+is skipped without its fixture. The new session and object-table reads have now
+succeeded in both solo No Mercy and a host-lobby capture. The lobby records
+capacity 2, one available partner entry and no spawned player objects. See the
 [session admission analysis](docs/SESSION-ADMISSION.md) for native evidence,
 field meanings and limits. No additional game patch or timer write was added.
 
-For a new read-only capture of a normal Mercenaries two-player Create Game lobby, with the existing
-trainer deactivated, run from this updated kit's directory:
+The unchanged solo/lobby baseline is complete; another identical capture is
+unnecessary. For reference, the read-only command for a normal Mercenaries
+two-player Create Game lobby, with the existing trainer deactivated, is:
 
 ```powershell
 py -3 .\probe_windows.py --pid (Get-Process BH6).Id --context mercenaries-lobby --samples 20 --delay 10
@@ -201,6 +203,15 @@ The `--context` argument is only a label; it does not select a game mode or scre
 This records slot configuration and player
 object presence candidates; the generated `private/probe-*.json` stays private.
 It does not apply the offline candidate or request a four-player playtest.
+
+### Native selector check (2026-11-07)
+
+A Linux x86-64 fixture now executes the exact 27-byte candidate selector using
+shared instruction encodings and a synthetic RNG. All 624 occupancy/input
+cases and separate retry/exhaustion checks pass. This is narrower than a full
+32-bit ABI or Windows test and does not validate gameplay. The real retry loop
+remains unbounded; no executable patch bytes changed. See the
+[method, results and limitations](docs/NATIVE-SELECTOR-CHECK.md).
 
 ## Remaining development access
 
@@ -218,6 +229,7 @@ an original Steam installation or count solo timer observation as a map PASS.
 - [Native patch investigation and map test matrix](docs/PATCH-INVESTIGATION.md)
 - [Research notes](docs/NOTES.md)
 - [Session admission and player-object observations](docs/SESSION-ADMISSION.md)
+- [Native selector execution check](docs/NATIVE-SELECTOR-CHECK.md)
 
 This repository contains the RE6 work originally developed in the cloud setup
 workspace. Game executables, assets, raw captures and private machine notes are

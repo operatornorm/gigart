@@ -62,6 +62,13 @@
     "four_clients_validated": false,
     "session_probe_solo_no_mercy_samples": 20,
     "solo_player_object_entries_observed": 1,
-    "online_lobby_observed": false
+    "online_lobby_observed": true,
+    "online_lobby_samples": 20,
+    "online_lobby_create_capacity": 2,
+    "online_lobby_free_kind_1_indices": [
+      1
+    ],
+    "online_lobby_distinct_player_objects": 0,
+    "mode_value_alone_classifies_screen": false
   }
 }
