@@ -4,7 +4,8 @@ This is the next development experiment, **not a finished four-player No Mercy
 mod**. The native candidate is unchanged. `native_trial.py` can now apply or
 restore its three code spans in one already-running Windows test process.
 The first returned Windows apply/inspect reports now show successful application
-and six-slot initialization. Live restore and rollback have not been observed.
+and six-slot initialization. A subsequent report also shows successful live
+restoration of all three original spans. Failure rollback remains unobserved.
 The trial can fail, freeze or crash the test process; it belongs on an isolated
 test copy. No game executable is included in the kit.
 
@@ -166,11 +167,15 @@ observation**, not a successful six-client Steam lobby or a playable multiplayer
 result. Only one apply and one lobby snapshot have been returned. No repeat of
 this same unchanged configuration capture is needed.
 
-The immediate next check is live restoration: leave the lobby, return to the
-main menu and run the restore command above, then return its private report.
-If the process has already been closed, its in-memory changes were discarded;
-do not reapply merely to produce an undo report. Restore/rollback behavior is
-still backed by synthetic tests until an actual restore report is returned.
+The subsequent restore report now shows the exact candidate bytes at all three
+sites before restore and the exact original bytes afterward. Historical targets
+continue to match disk. Both snapshots have mode 0, scene 1102, session type 0,
+empty slots and no player objects; those observations are unchanged by restore.
+This is one successful live restore, not a test of rollback after a failed write.
+
+The empty-lobby and reversibility stages are complete. The next diagnostic is
+[two-client, then three-client admission](THREE-CLIENT-ADMISSION.md). There is no
+need to repeat an unchanged apply/lobby/restore cycle alone.
 
 ## Validation performed here
 
@@ -181,6 +186,7 @@ partial writes, bad readback, interruption, rollback failure, menu restrictions,
 candidate-lobby interpretation and mocked suspension/protection/cache behavior.
 Those Windows API mocks are not evidence of a Windows run. Separately, the
 returned apply report and subsequent lobby observation now provide live evidence
-for one successful Windows application path. The cloud itself has not opened a
-Windows game process. Live restore/rollback, peer joining and gameplay remain
-unverified; no multiplayer round was run as part of this trial.
+for one successful Windows application path and one successful restore. The
+cloud itself has not opened a Windows game process. Failure rollback, peer
+joining and gameplay remain unverified; no multiplayer round was run as part
+of this trial.

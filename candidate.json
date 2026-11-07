@@ -71,7 +71,7 @@
     "online_lobby_distinct_player_objects": 0,
     "mode_value_alone_classifies_screen": false,
     "windows_native_apply_observed": true,
-    "native_restore_observed": false,
+    "native_restore_observed": true,
     "candidate_standard_mercenaries_lobby_capacity": 6,
     "candidate_lobby_free_kind_1_indices": [
       1,
@@ -82,5 +82,12 @@
     ],
     "candidate_lobby_randomization_is_six_element_permutation": true,
     "extra_client_join_observed": false
+  },
+  "acceptance_targets": {
+    "successful_player_count": 3,
+    "additional_player_count_goal": 4,
+    "mode": "Mercenaries No Mercy",
+    "all_maps_coverage": "separate unverified goal",
+    "admission_does_not_establish_gameplay": true
   }
 }

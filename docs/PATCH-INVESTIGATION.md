@@ -1,8 +1,9 @@
 # v1.1.0 Mercenaries / No Mercy patch investigation
 
 Status: **static port candidate and clock-correlated solo No Mercy capture; no multiplayer validation**.
-Updated 2026-11-07. Primary acceptance target: at least four real players in
-No Mercy on every map. Standard Mercenaries remains a separate compatibility target
+Updated 2026-11-07. Three real players in No Mercy now count as a success target;
+four-player support and complete map coverage remain separately tracked goals.
+Standard Mercenaries remains a separate compatibility target
 from the original request.
 
 Follow-up: [session admission and player-object tracing](SESSION-ADMISSION.md)
@@ -17,7 +18,8 @@ The [first returned native lobby trial](LOBBY-TRIAL.md) now reports all three
 candidate spans applied on Windows and a fresh standard Mercenaries lobby with
 capacity 6, five available partner entries and six distinct randomized indices.
 This is the first real initialization observation; peer admission, gameplay,
-live restoration and four-player No Mercy remain unverified.
+failure rollback and three-/four-player No Mercy remain unverified. A subsequent
+restore report has now confirmed all three original spans were restored.
 
 ## What was actually traced
 

@@ -1,6 +1,8 @@
 # RE6 v1.1.0 Mercenaries investigation kit
 
-**Research candidate, not a finished multiplayer patch.** Four-player No Mercy,
+**Research candidate, not a finished multiplayer patch.** Three-player No Mercy
+is now a success target; four-player support and full map coverage remain
+separate goals. Three-player gameplay, four-player No Mercy,
 all maps, deaths/results and subsequent rounds have not been tested. No claim of
 working gameplay is made. A returned Windows main-menu capture verifies that the
 collector can read the pinned live image and its three original code spans. It
@@ -22,9 +24,16 @@ isolated test copy; no round or extra participant is needed. Follow the complete
 All **52 offline tests** pass on the current Linux host. Returned Windows reports
 now show the first successful native application and fresh six-slot lobby
 initialization: capacity 6, five free partner entries and distinct randomized
-indices. Actual extra-client joining and live restore/rollback remain unverified.
+indices. A subsequent live restore returned all three spans to their exact
+original bytes. Actual extra-client joining and failure rollback remain unverified.
 It does not implement a timer policy or establish four-player No Mercy support.
 The ordinary `probe_windows.py` collector still requests read-only access only.
+
+The next stage is the [three-client joining check](docs/THREE-CLIENT-ADMISSION.md):
+host-only candidate, joining clients initially unmodified, first one peer and
+then a second, staying in standard Mercenaries' waiting lobby. No further
+unchanged solo or empty-lobby baseline is needed. This separates admission from
+the later No Mercy gameplay target.
 
 ## Current evidence
 
@@ -246,6 +255,7 @@ an original Steam installation or count solo timer observation as a map PASS.
 - [Session admission and player-object observations](docs/SESSION-ADMISSION.md)
 - [Native selector execution check](docs/NATIVE-SELECTOR-CHECK.md)
 - [Experimental lobby trial and undo](docs/LOBBY-TRIAL.md)
+- [Three-client joining check](docs/THREE-CLIENT-ADMISSION.md)
 
 This repository contains the RE6 work originally developed in the cloud setup
 workspace. Game executables, assets, raw captures and private machine notes are

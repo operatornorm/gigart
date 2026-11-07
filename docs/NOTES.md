@@ -324,3 +324,25 @@ published.
 - Only observation metadata/documentation changed for these reports. The
   existing 52-test offline result remains the latest suite run; no new tests
   or candidate replacement bytes were introduced in this evidence update.
+
+## 2026-11-07: live restore confirmed; three-player target accepted
+
+- Returned restore report shows all three exact candidate spans before and
+  original spans afterward. Historical trainer targets match disk throughout.
+  Main-menu state, empty slot configuration and no-player-object observations
+  are unchanged. Raw report and analysis remain ignored in local/.
+- This establishes one successful live restore. Failure rollback is still
+  covered by synthetic tests only, not an observed Windows failure case.
+- Owner explicitly accepts three-player No Mercy as success; four-player
+  support and complete map coverage remain separate goals. No candidate byte
+  changes are needed for this target adjustment.
+- Prepared a two-client then three-client joining protocol, keeping the first
+  stage in a standard Mercenaries lobby without launching a round. Host-only
+  patch initially; ordinary read-only collector after each peer joins. The
+  empty-lobby-only native_trial assessment must not be used to judge an occupied
+  lobby. No new unchanged baseline capture is needed.
+- Static Steam matchmaking call at 0x419296 matches ISteamMatchmaking009's
+  CreateLobby layout: the constant2 is lobby type, with the member count loaded
+  from +0xad10. The shipped DLL/interface and live call arguments remain
+  unobserved. Recorded source and limits in THREE-CLIENT-ADMISSION.md; no
+  speculative additional patch was made.
