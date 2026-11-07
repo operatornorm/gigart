@@ -11,6 +11,19 @@ This kit contains original analysis tools and a minimal patch description, not
 BH6.exe, a modified game executable, game assets or Fluffy's software. It installs
 nothing and does not launch the game, Steam or a trainer.
 
+## Next experiment: lobby expansion
+
+The unchanged solo/lobby baselines are complete. The updated kit now includes
+`native_trial.py`, an experimental **in-memory** apply/restore tool that defaults
+to read-only inspection. First use is a fresh-lobby configuration check on an
+isolated test copy; no round or extra participant is needed. Follow the complete
+[lobby trial instructions](docs/LOBBY-TRIAL.md), including preparation and undo.
+
+All **52 offline tests** pass on the current Linux host. The new Windows API
+backend is tested with mocks, not a real Windows process; it remains experimental.
+It does not implement a timer policy or establish four-player No Mercy support.
+The ordinary `probe_windows.py` collector still requests read-only access only.
+
 ## Current evidence
 
 The privately supplied BH6.exe has file/product version **1.1.0.0**, PE32/x86,
@@ -181,7 +194,7 @@ host admission search and distinct no-free-slot and map-availability branches.
 These additions make admission and object creation separately observable;
 they do not increase the candidate's validation level.
 
-The current suite passes **35 offline tests** on Linux x86-64 with the existing
+The current suite passes **52 offline tests** on Linux x86-64 with the existing
 C compiler and private executable fixture. Three native selector checks are
 skipped on other platforms or without a compiler; the private-executable test
 is skipped without its fixture. The new session and object-table reads have now
@@ -230,6 +243,7 @@ an original Steam installation or count solo timer observation as a map PASS.
 - [Research notes](docs/NOTES.md)
 - [Session admission and player-object observations](docs/SESSION-ADMISSION.md)
 - [Native selector execution check](docs/NATIVE-SELECTOR-CHECK.md)
+- [Experimental lobby trial and undo](docs/LOBBY-TRIAL.md)
 
 This repository contains the RE6 work originally developed in the cloud setup
 workspace. Game executables, assets, raw captures and private machine notes are

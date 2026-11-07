@@ -264,3 +264,26 @@ published.
 - The full suite now passes 35 offline tests on the current host with the private
   fixture and existing compiler. No candidate replacement bytes changed, no
   memory/game-install writes occurred and no gameplay QA status increased.
+
+## 2026-11-07: prepared reversible memory-only lobby trial
+
+- Added native_trial.py. Default mode uses the existing read-only reader;
+  apply/restore require explicit flags and an exact matching test-executable
+  path. No actual game file, process memory, timer, mode or save was changed here.
+- Write preflight pins original and candidate hashes, preferred module base/size,
+  live instruction/context guards and unchanged legacy targets. Requires the
+  observed menu scene, inactive session and absent player objects/other peers.
+  An existing lobby is refused because initialization must run after patching.
+- The Windows backend uses NtSuspendProcess/NtResumeProcess around state checks,
+  the transaction and rollback. Writes restore protection and flush instruction
+  cache. This backend has only mocked tests here; no Windows process was opened.
+- Seventeen new tests pass for preflight, transactional restore, partial writes,
+  readback failures, interruption, rollback failure, state restrictions,
+  six-slot interpretation and mocked backend controls. Full suite:52 offline
+  tests passed with private fixture and existing compiler. CLI help checked.
+- Packaged instructions require an isolated complete test copy, followed by an
+  empty private standard-Mercenaries lobby check. No round/extra participant is
+  requested; this is a configuration experiment, not human acceptance QA.
+- Original candidate bytes and unresolved timer policy remain unchanged. A
+  successful configuration check would still leave actual peer admission,
+  No Mercy spawning, extra-slot deaths/results and every-map QA unverified.
