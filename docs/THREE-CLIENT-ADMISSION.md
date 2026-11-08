@@ -1,5 +1,11 @@
 # Three-client joining check
 
+**Completed:** the supplied captures now establish third-player admission, and
+the user reports successful three-player gameplay in both standard Mercenaries
+and No Mercy. See [the current result](THREE-PLAYER-RESULT.md). This is the
+historical protocol; another joining test is not needed to establish three
+players. Use [the Steam launcher instructions](STEAM-QUICKSTART.txt) for the new release.
+
 The current success target is **three real players in Mercenaries No Mercy**.
 Four-player support and complete map coverage remain separate goals. The
 candidate still configures six slots; no change to its bytes is needed to test

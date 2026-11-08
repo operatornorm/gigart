@@ -181,12 +181,12 @@ longer window with `--samples 20`, and wait for game focus to return with
 py -3 .\patch_candidate.py "<test copy>\BH6.exe"
 ```
 
-For analysis, `--build-native-candidate` writes an incomplete native-only copy
+For analysis, `--build-native-candidate` writes an offline candidate
 under this project's ignored `private/` directory. It never replaces its input,
 never overwrites existing output and never launches that output. Keep it for
-static comparison; this is not an instruction to install or play it. The timer
-policy and all real-client tests are unfinished; locating the clock does not
-establish that the legacy freeze is necessary or correct for the port.
+static comparison; use the memory launcher for playing. The reported successful
+three-player sessions used the native timer unchanged. Locating the clock does
+not establish a need for the legacy timer freeze.
 
 The builder requires the exact input SHA-256, original byte guards and surrounding
 code guards. It checks RVA/file-offset mappings and refuses overlap, bad lengths,
@@ -201,7 +201,7 @@ other ranges are intentionally modified. It has no map-specific patches, which
 
 ## Validation completed here
 
-18 offline tests passed, including one using the actual private executable and
+The initial 18 offline tests passed, including one using the actual private executable and
 17 tests of guards/output preservation/observation interpretation. Static
 inspection confirmed the file's version, architecture, instruction boundaries,
 replacement lengths and the third block's branch destinations. The input hash
@@ -214,9 +214,11 @@ An attempted isolated i386 CPU fixture could not run here (ELF32 loader rejected
 the file; an ELF64 compatibility-segment attempt faulted). Neither attempt is
 counted as a passing test or included in the shareable kit.
 
-These checks do not validate networking or game behavior. The
-remaining gates are four real clients on each map, native No Mercy mode, combat,
-extra-slot death/revive, results, another round and two-player regression.
+Those offline checks do not validate networking or game behavior. Subsequent
+host captures establish third-player admission, and the user reports working
+three-player gameplay in both modes. Four real clients, exhaustive maps,
+extra-slot death/revive, results, repeated rounds and two-player regression
+remain outside the supplied coverage.
 Candidate map labels from Fluffy's tool: Rail Yard, Requiem for War, Urban Chaos,
 Mining the Depths, High Seas Fortress, Catacombs, Steel Beast, Rooftop, Creature
 Workshop and Liquid Fire. Confirm that inventory against the actual installation
@@ -240,7 +242,7 @@ host admission search and distinct no-free-slot and map-availability branches.
 These additions make admission and object creation separately observable;
 they do not increase the candidate's validation level.
 
-The current suite passes **52 offline tests** on Linux x86-64 with the existing
+At this stage, the suite passed **52 offline tests** on Linux x86-64 with the existing
 C compiler and private executable fixture. Three native selector checks are
 skipped on other platforms or without a compiler; the private-executable test
 is skipped without its fixture. The new session and object-table reads have now
@@ -277,10 +279,16 @@ remains unbounded; no executable patch bytes changed. See the
 This cloud workspace has the privately supplied executable and returned diagnostic
 reports, not a complete playable RE6 installation, Windows game execution access,
 or four authenticated test clients. It cannot execute the real-client bot suite.
-The three-site native-only candidate is reproducible here, but the appropriate
-timer policy, larger-session admission/spawning and extra-slot death/results
-behavior still need controlled game execution. Do not install the candidate in
-an original Steam installation or count solo timer observation as a map PASS.
+The three-site patch is reproducible here. The current suite passes **64 tests**
+locally with the private executable, including the new Steam discovery and
+wrapper transaction checks. Public CI skips the private-executable test;
+Windows also skips the three Linux-native selector checks and the POSIX symlink
+test. Windows CI separately builds the portable executable and checks GUI startup.
+
+The original trial supplied the live three-player result. The normal-Steam
+wrapper's first live application, four or more real clients and exhaustive
+map/round coverage are not performed by this workspace. The wrapper changes
+only how the same patch is selected and applied; the native timer remains unchanged.
 
 ## Research records
 
@@ -294,4 +302,4 @@ an original Steam installation or count solo timer observation as a map PASS.
 
 This repository contains the RE6 work originally developed in the cloud setup
 workspace. Game executables, assets, raw captures and private machine notes are
-excluded. Publishing this source does not make the candidate gameplay-ready.
+excluded. The reported gameplay scope and remaining limits are stated above.

@@ -1,10 +1,14 @@
 # v1.1.0 Mercenaries / No Mercy patch investigation
 
-Status: **static port candidate and clock-correlated solo No Mercy capture; no multiplayer validation**.
-Updated 2026-11-07. Three real players in No Mercy now count as a success target;
-four-player support and complete map coverage remain separately tracked goals.
-Standard Mercenaries remains a separate compatibility target
-from the original request.
+**Update, 8 November 2026:** three-player admission is captured and the user
+reports successful standard Mercenaries and No Mercy gameplay with the exact
+three-site patch. See [the result, frozen build and limitations](THREE-PLAYER-RESULT.md).
+Four or more players and exhaustive map/round coverage remain unverified.
+The normal-Steam launcher reuses the tested runtime and patch bytes unchanged.
+
+The sections below preserve the investigation as it developed through 7 November.
+Their earlier "unverified" status statements are historical; the linked result
+above is the current evidence record.
 
 Follow-up: [session admission and player-object tracing](SESSION-ADMISSION.md)
 now identifies the native six-slot admission search, separate map/no-slot

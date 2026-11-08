@@ -1,6 +1,9 @@
 # Resident Evil 6: Mercenaries with four or more players
 
-Research started 2026-11-07. No game or mod binaries available; no gameplay tests run.
+Research started 2026-11-07. Current result: three-player admission captured;
+three-player standard Mercenaries and No Mercy gameplay reported by the user.
+See [the current evidence](THREE-PLAYER-RESULT.md). Earlier dated entries preserve
+their status at the time. Raw game inputs and reports are private.
 
 ## Observations
 
@@ -364,3 +367,27 @@ published.
 - No candidate bytes, memory-writing tools or process state changed. A disabled
   invitation UI must be distinguished from a rejected pending invitation and
   a game-level slot rejection before choosing a further implementation change.
+
+
+## 2026-11-08: three-player result preserved; normal Steam wrapper
+
+- Two supplied host captures have six consistent samples each, progressing from
+  occupied slots 0–1 to 0–2, capacity 6 and exact candidate bytes at all three
+  sites. These are lobby captures, independently establishing third-player
+  admission. Their raw contents remain ignored in local/runtime-input.
+- The host reports actual three-person gameplay in both standard Mercenaries
+  and No Mercy without identifiable timer, score, item or enemy-spawn issues.
+  Map/round coverage was not specified. Four or more real players are unverified.
+- Tagged the original distributed source commit ea19ade as v0.1.0-tested and
+  pinned its original kit hash, four runtime file hashes and full patch records.
+  The records and those modules remain unchanged. No timer freeze was added.
+- Added a separate Steam-install/process detection and GUI wrapper, with Apply
+  and Restore using the original pause/guard/rollback backend. Only registered
+  app 221040 paths qualify, followed by the original exact executable hash guard.
+  No Python or test copy is needed for the packaged Windows executable.
+- All 64 tests pass locally including the supplied executable. Public Linux
+  CI passes with the private-input skip; Windows CI passes with platform/private
+  skips, builds the standalone executable and checks its GUI startup. Those
+  checks do not exercise the new wrapper against an actual running Steam game.
+- Release packaging includes only the launcher, instructions, frozen build
+  manifest and source-commit metadata, with SHA-256 download checksums.
