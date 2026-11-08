@@ -1,0 +1,68 @@
+RE6 Mercenaries Patch 0.2.0
+
+WHAT YOU NEED
+Windows 10/11 (64-bit), Steam, and the supported original RE6 v1.1.0 executable.
+No Python installation, copied game folder, or Fluffy trainer is required.
+
+The patch verifies the exact supported build, including SHA-256:
+b8bceaf09272d5f30b89940737763afa6dfb78647c81165af1aa8a10d0afeb35
+A different regional, modified or updated executable is refused.
+
+HOST INSTRUCTIONS
+1. Extract the download anywhere outside the game folder.
+2. Turn Fluffy's trainer off. If it was active in this RE6 session, restart RE6.
+   The mod manager can remain open with its trainer off.
+3. Start Resident Evil 6 normally through Steam. Stay at the main menu, outside
+   any lobby or round.
+4. Open RE6MercenariesPatch.exe. Click Refresh, then Apply.
+5. After it says "Patch applied", create a fresh Mercenaries lobby. Use standard
+   Mercenaries to gather the group, then select your desired mode in the game.
+6. While you are still alone, send a Steam invitation to each friend. Ask them
+   to accept one at a time. This avoids relying on the invite button after the
+   usual second player joins. An invitation itself does not guarantee admission.
+7. Once all three people are present, ready up and play.
+
+Friends initially use their normal licensed copies without applying this
+host patch. Do not apply or restore while anyone is in a lobby or round.
+Use the same game version on all clients.
+
+Repeat Apply after each new RE6 launch. You may close this launcher after Apply;
+the patch remains in that RE6 process until the game closes. Closing RE6 or
+turning off the PC discards it automatically. To undo without closing RE6,
+leave the lobby, return to the main menu, click Refresh and then Restore.
+
+IF SOMETHING IS REFUSED
+- "Start Resident Evil 6": launch it from Steam, then refresh at the main menu.
+- "Not a registered ... installation": close any D:\RE6-Test copy and launch
+  the normal installed game from Steam. No steam_appid.txt is needed.
+- "Unsupported executable": the file does not match the supported build.
+  Steam's Verify integrity can restore an original installation; back up your
+  own mods before choosing that Steam operation. Do not substitute other hashes.
+- "Live code differs": restart RE6 with other trainers off.
+- "Host/join session ... active": leave the lobby; restart RE6 if it persists.
+- "Access is denied": run the game and this launcher under the same Windows
+  user and elevation level. Administrator rights are not normally required.
+- A partial-write or rollback error: close RE6 before trying again.
+
+RESULT AND LIMITS
+The host and two friends reported working three-player standard Mercenaries
+and No Mercy, without identifiable timer, score, item or enemy-spawn issues.
+Supplied captures independently verify third-player lobby admission.
+The code configures six slots. Four, five and six real players, all maps,
+deaths/results and repeat rounds have not been comprehensively verified.
+
+The three patch records and four original runtime modules are identical to
+the tested v0.1.0-tested source. This release adds installation detection and
+a graphical launcher. It does not freeze or modify the timer, set game mode,
+alter Steam checks, edit game files or touch saves. No background service,
+automatic download or telemetry is installed. Local action logs are kept at:
+%LOCALAPPDATA%\RE6MercenariesPatch\logs
+
+The launcher has automated Windows build, GUI startup and offline transaction
+checks. Applying this new launcher to an actual Steam game is not covered by
+those automated checks; the original command-line tool supplied the live
+three-player gameplay result. The original tool is preserved in the source.
+
+Source, tested build and detailed evidence:
+https://github.com/operatornorm/gigart
+https://github.com/operatornorm/gigart/tree/v0.1.0-tested

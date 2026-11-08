@@ -18,6 +18,25 @@ executable, assets or Fluffy's software. The patch writes only the running game'
 three code spans. It does not change the game executable on disk, timer, mode,
 Steam checks or saves. Closing RE6 removes the memory changes.
 
+## Normal Steam installation
+
+The [portable Windows launcher](https://github.com/operatornorm/gigart/releases/tag/v0.2.0)
+adds Steam installation/process detection and **Refresh / Apply / Restore**
+buttons. Download the Windows ZIP, extract it outside the game folder, start RE6
+normally from Steam, and click Refresh then Apply at the main menu. Host a fresh
+lobby afterward. No Python, process-ID command or copied game folder is needed.
+The host applies it; friends initially join with their normal clients.
+
+See [the complete instructions](docs/STEAM-QUICKSTART.txt), including invitation
+order and undo. The package requires Windows 10/11 64-bit and the exact supported
+original Steam executable identified below. Other regional or modified files
+are refused. It reuses the four frozen runtime modules and all three tested patch
+records; it adds no timer or gameplay changes.
+
+The new wrapper has offline transaction checks and a Windows build/GUI startup
+check. Those checks do not run RE6; live gameplay evidence comes from the original
+test tool. The new wrapper's first live application remains separately unverified.
+
 ## Original test kit
 
 The original `native_trial.py` tool is preserved unchanged. It requires an
@@ -28,6 +47,28 @@ leading to the result above. They are not additional tests required to establish
 the reported three-player success.
 
 The ordinary `probe_windows.py` collector requests read-only access only.
+
+## Build the Windows launcher
+
+On Windows with Python 3.12 x64, use a virtual environment, then run:
+
+```powershell
+py -3.12 -m venv .venv-build
+.\.venv-build\Scripts\python -m pip install --require-hashes --only-binary=:all: -r requirements-build.txt
+.\.venv-build\Scripts\python -m unittest discover -s tests -v
+.\.venv-build\Scripts\python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name RE6MercenariesPatch --add-data "candidate.json:." --add-data "docs/tested-build.json:docs" steam_patch.py
+.\.venv-build\Scripts\python tools\package_release.py
+```
+
+The pinned build dependencies come from official PyPI wheels. GitHub Actions
+builds the same package on Windows, checks the frozen executable and GUI startup
+without accessing a game, then publishes tagged releases with SHA-256 checksums.
+Release packaging uses an explicit file allowlist. It includes no private reports,
+game executables, assets, account information or credentials.
+
+Source users with Python 3.10+ can also run `py -3 .\steam_patch.py` to open the
+interface, or use `--inspect`, `--apply`, or `--restore` from the source directory.
+No pip packages are needed to run the source version.
 
 ## Current evidence
 
