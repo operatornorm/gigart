@@ -1,77 +1,90 @@
-# Selected scene record correction — launcher 0.2.1
+# Session checks without screen restrictions — launcher 0.2.2
 
-The owner confirms that the normal-Steam launcher works on their PC. Another
-person using the supported executable reports "Original game code. Not the
-observed menu scene" at Play Game / Extra Content / Mercenaries screens.
-With RE6 closed, the launcher correctly asks them to start the game.
+Version 0.2.2 applies/restores independently of the current screen, menu or scene
+ID. It requires a readable inactive session and no active player objects or
+occupied slots. Existing lobbies must be left and created afresh: these code
+patches affect lobby initialization, not the capacity of an existing session.
 
-"Original game code" means Steam path, exact disk hash, live module identity,
-all three original patch contexts and historical trainer targets passed their
-checks. The later refusal concerns menu recognition. No diagnostic capture from
-the affected PC has yet established its actual scene or selected record index.
+## Returned diagnostic
 
-## Native evidence
+The affected friend reports the refusal while at the game's menus. Their
+version-0.2.1 diagnostic records:
 
-Addresses below are preferred virtual addresses in the exact pinned executable.
-The native getter at **0x455380** is:
+| Observation | Value |
+|---|---|
+| Supported executable and live code | Exact pinned build; all three original contexts |
+| Historical trainer targets | Match disk |
+| Selected record | 0, stable |
+| Selected and record-zero scene | 904 |
+| Session root | Stable |
+| Session type | 0 |
+| All eight slot states | 0 |
+| Player-object table | Stable; all eight entries absent |
 
-```asm
-mov eax, [ecx + 0x20]
-imul eax, eax, 0x3ce4
-mov eax, [eax + ecx + 0x412a4]
-ret
-```
+The previous correction to indexed scene reading did **not** resolve this case:
+record zero was selected and stable. Requiring scene 1102 was too restrictive.
+The diagnostic does not establish scene 904 as a universal menu ID; no scene
+allowlist is used in the new launcher. The raw report remains private; SHA-256:
 
-With `info = [BH6.exe + 0x13cf49c]`, the scene is therefore:
+`037608fa4d2e0e475f048dabcaf964ed19be1278578284d1ec9734dfbe7f4fc6`
+
+## Apply and Restore conditions
+
+The normal-Steam wrapper now checks:
+
+- A stable, readable session root and session type 0 or 4, preserving the
+  previously accepted inactive-session types.
+- All eight slot states are readable and zero. This includes slot zero, so a
+  solo round before player creation is not accepted just because peers are absent.
+- The player-manager root is readable: either explicitly null, or a valid
+  pointer with a stable, completely empty eight-entry player-object table.
+  Unknown, invalid or inconsistent player reads are refused.
+
+These conditions are rechecked while every game thread is suspended, before
+building and committing the original guarded transaction. Refresh is read-only;
+its result alone never authorizes a later write. Exact disk/module identity,
+patch contexts, historical trainer checks, readback and rollback remain in force.
+
+Scene data is diagnostic only. A different scene, unreadable game-info root or
+changing scene-record index does not block a separately verified inactive
+session. This does not enable applying/restoring inside a lobby or round, and
+does not resize a lobby already created before application.
+
+The four original runtime files and all three patch records remain unchanged.
+The historical `native_trial.py` still preserves its original menu-only policy;
+use the normal-Steam launcher for the new policy.
+
+## Diagnostic scene reading
+
+The native getter at preferred VA **0x455380** in the pinned executable reads:
 
 ```text
+info = read_u32(BH6.exe + 0x13cf49c)
 index = read_u32(info + 0x20)
 scene = read_u32(info + 0x412a4 + index * 0x3ce4)
 ```
 
-The constructor at **0x5682a8–0x5682c1** constructs four records beginning at
-`info + 0x3f798`, advancing by `0x3ce4`; the loop counter starts at 3 and
-continues through zero. The launcher bounds the selected index to **0–3**.
-The stage setter at **0x46495c–0x464969** and scene initialization at
-**0xd29f3b–0xd29f44** use the same index and stride. No assumption about which
-controller, account, save or option determines that index is needed.
+The constructor at **0x5682a8–0x5682c1** constructs four records; the bounded
+reader accepts indices 0–3 and rechecks the root and index. Setter
+**0x46495c–0x464969** and initialization **0xd29f3b–0xd29f44** use the same
+indexed layout. This correction from 0.2.1 is retained for accurate diagnostics,
+without making the scene value a patching prerequisite.
 
-The original collector read `info + 0x412a4` without the index. That agrees with
-the native getter only when index is zero (or records happen to agree). This is
-a confirmed source defect and a plausible cause of the friend's refusal. Its
-role on that particular PC still needs confirmation with the updated launcher.
-
-## Change and retained guards
-
-`menu_state.py` implements bounded reads with rechecks of both root and index.
-Unreadable fields, invalid indices or a changed selection yield an unknown scene;
-the launcher refuses Apply and Restore. It never falls back to record zero.
-The existing scene value **1102**, inactive-session requirement, absent-player
-checks, suspended write transaction, code guards and rollback remain in force.
-The corrected scene read also runs again while the process is suspended.
-
-The four original runtime files and all three patch records remain unchanged.
-`steam_patch.py` uses a wrapper snapshot containing the selected scene, while
-retaining the legacy observation separately for diagnosis. The historical kit's
-`probe_windows.py` and `native_trial.py` continue to preserve their exact tested
-source; use the new launcher for the corrected menu lookup.
-
-**Save diagnostics** opens the read-only backend and exports a new JSON file
-chosen by the user. It includes the selected index, selected scene, record-zero
-scene, stability flags, code observations and existing bounded session/player
-observations. It neither suspends nor writes the game, uploads anything, nor
-overwrites an existing file. No peer names, account IDs or profiles are read.
+Save diagnostics exports a new local JSON file through the read-only backend.
+It does not suspend/write the game, upload anything, overwrite an existing file,
+or read peer names, account IDs or profiles.
 
 ## Validation
 
-The regression fixture accepts a selected nonzero record containing menu scene
-1102 even when record zero is stale. It also refuses a selected gameplay scene
-1212 when record zero still contains 1102, and verifies zero writes on refusal.
-Invalid/short reads, root/index changes, all four indices, diagnostics export,
-and the exact patched output are covered. A private-input test verifies the
-getter and constructor instruction bytes against the pinned executable.
+All **80 tests** pass locally with the private executable. Regression fixtures
+reproduce the returned scene-904/inactive-session state and verify exact
+apply/restore bytes. Unreadable scene data is accepted when session/player
+checks pass. Active host/join sessions, player objects, occupied slot zero,
+unknown reads and a session becoming active after Refresh are refused before
+any write. Transaction failure still rolls back and resumes the process.
 
-All **74 local tests** pass with the private input. Public builds skip the two
-private-input tests; Windows additionally skips the three Linux-native selector
-checks and POSIX symlink test. Windows CI builds the executable and checks GUI
-startup without RE6. The affected friend's first live run remains unverified.
+Private-input tests verify the executable and native scene-layout instructions.
+Public CI skips those two tests; Windows additionally skips three Linux-native
+selector tests and the POSIX symlink test. Windows CI builds the executable and
+checks GUI startup without RE6. This release's live application on the affected
+PC remains to be confirmed.

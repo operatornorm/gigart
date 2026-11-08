@@ -1,4 +1,4 @@
-RE6 Mercenaries Patch 0.2.1
+RE6 Mercenaries Patch 0.2.2
 
 WHAT YOU NEED
 Windows 10/11 (64-bit), Steam, and the supported original RE6 v1.1.0 executable.
@@ -12,8 +12,8 @@ HOST INSTRUCTIONS
 1. Extract the download anywhere outside the game folder.
 2. Turn Fluffy's trainer off. If it was active in this RE6 session, restart RE6.
    The mod manager can remain open with its trainer off.
-3. Start Resident Evil 6 normally through Steam. Load the save and reach the
-   menu with Play Game / Extra Content / Options, outside any lobby or round.
+3. Start Resident Evil 6 normally through Steam, outside any lobby or round.
+   No particular screen, menu or scene ID is required; let the game initialize.
 4. Open RE6MercenariesPatch.exe. Click Refresh, then Apply.
 5. After it says "Patch applied", create a fresh Mercenaries lobby. Use standard
    Mercenaries to gather the group, then select your desired mode in the game.
@@ -29,10 +29,10 @@ Use the same game version on all clients.
 Repeat Apply after each new RE6 launch. You may close this launcher after Apply;
 the patch remains in that RE6 process until the game closes. Closing RE6 or
 turning off the PC discards it automatically. To undo without closing RE6,
-leave the lobby, return to the main menu, click Refresh and then Restore.
+leave the lobby or round, click Refresh and then Restore.
 
 IF SOMETHING IS REFUSED
-- "Start Resident Evil 6": launch it from Steam, then refresh at the main menu.
+- "Start Resident Evil 6": launch it from Steam, then refresh.
 - "Not a registered ... installation": close any D:\RE6-Test copy and launch
   the normal installed game from Steam. No steam_appid.txt is needed.
 - "Unsupported executable": the file does not match the supported build.
@@ -40,11 +40,12 @@ IF SOMETHING IS REFUSED
   own mods before choosing that Steam operation. Do not substitute other hashes.
 - "Live code differs": restart RE6 with other trainers off.
 - "Host/join session ... active": leave the lobby; restart RE6 if it persists.
-- "Main menu not verified": return to the Play Game / Extra Content menu and
-  refresh. Version 0.2.1 corrects a scene lookup that previously always used
-  record zero. If still refused, click Save diagnostics, choose a new JSON
-  file, and share it with the developer. Apply remains disabled on an unknown
-  or changing menu state. Do not start a round to collect this report.
+- Scene/menu error in an older version: use version 0.2.2. Scene data no longer
+  controls Apply or Restore. This resolves the reported scene-904 refusal in
+  offline regression checks, without treating 904 as a universal menu ID.
+- Unreadable session/player/slot state: wait and refresh. If still refused,
+  click Save diagnostics, choose a new JSON file, and share it with the
+  developer. No round needs to start. Active/unknown sessions remain refused.
 - "Access is denied": run the game and this launcher under the same Windows
   user and elevation level. Administrator rights are not normally required.
 - A partial-write or rollback error: close RE6 before trying again.
@@ -65,8 +66,9 @@ automatic download or telemetry is installed. Local action logs are kept at:
 
 The launcher has automated Windows build, GUI startup and offline transaction
 checks. The owner confirms version 0.2.0 works on their normal Steam installation.
-Version 0.2.1 corrects selected-record scene recognition; the affected friend's
-first live run remains unverified. The original command-line tool supplied the
+Version 0.2.1 still refused the affected friend at scene 904. Version 0.2.2
+removes all scene requirements, while checking for an inactive session. Its
+first live application on that PC remains unverified. The original command-line tool supplied the
 live three-player gameplay result and is preserved in the source.
 
 Source, tested build and detailed evidence:

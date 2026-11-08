@@ -96,6 +96,65 @@ class SteamDiscoveryTests(unittest.TestCase):
             validate.assert_not_called()
 
 
+class InactiveSessionTests(unittest.TestCase):
+    def setUp(self):
+        self.spec = load_manifest()
+        self.reader = unittest.mock.Mock()
+        self.reader.read.return_value = struct.pack("<I", 0x22000000)
+
+    def check(self, observation):
+        launcher.inactive_session_check(self.reader, 0x400000, self.spec, observation)
+
+    def test_no_scene_value_or_scene_readability_is_required(self):
+        for stage in (None, 0, 904, 1102, 1212, 0xFFFFFFFF):
+            for session_type in (0, 4):
+                with self.subTest(stage=stage, session_type=session_type):
+                    observation = menu_observation()
+                    observation["stage_field_candidate"] = stage
+                    observation["scene_selection"] = {"stage": None, "root_stable": False}
+                    observation["session"]["fields"]["session_type_candidate"] = session_type
+                    self.check(observation)
+
+    def test_active_or_unknown_session_players_and_any_slot_are_refused(self):
+        mutations = (
+            lambda o: o["session"].update(root_stable=False),
+            lambda o: o["session"].update(root_stable=None),
+            lambda o: o["session"].update(fields=None),
+            lambda o: o["session"]["fields"].update(session_type_candidate=1),
+            lambda o: o["session"]["fields"].update(session_type_candidate=2),
+            lambda o: o["session"]["fields"].update(session_type_candidate=None),
+            lambda o: o["session"].update(slots=None),
+            lambda o: o["session"].update(slots=[]),
+            lambda o: o["session"]["slots"][0].update(slot_state=2),
+            lambda o: o["session"]["slots"][1].update(slot_state=1),
+            lambda o: o["session"]["slots"][7].update(slot_state=None),
+            lambda o: o["player_objects"].update(root_stable=False),
+            lambda o: o["player_objects"].update(entry_present=None),
+            lambda o: o["player_objects"].update(entry_present=[True] + [False] * 7),
+            lambda o: o["player_objects"].update(entry_present=[None] * 8),
+        )
+        for mutation in mutations:
+            observation = menu_observation()
+            observation["stage_field_candidate"] = 904
+            mutation(observation)
+            with self.subTest(observation=observation), self.assertRaises(Rejected):
+                self.check(observation)
+
+    def test_readable_null_manager_is_distinct_from_invalid_or_failed_reads(self):
+        observation = menu_observation()
+        observation["player_objects"].update(root_stable=None, entry_present=None)
+        self.reader.read.return_value = b"\0" * 4
+        self.check(observation)
+        for data in (None, b"\0", struct.pack("<I", 0xFFFF), b"\xff" * 4):
+            self.reader.read.return_value = data
+            with self.subTest(data=data), self.assertRaises(Rejected):
+                self.check(observation)
+        self.reader.read.return_value = b"\0" * 4
+        observation["player_objects"]["entry_present"] = [True] + [False] * 7
+        with self.assertRaises(Rejected):
+            self.check(observation)
+
+
 class WrapperTransactionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -111,13 +170,15 @@ class WrapperTransactionTests(unittest.TestCase):
         self.info_root = 0x21000000
         self.info_index = 0
         self.record_stages = [1102] * 4
+        self.scene_unreadable = False
+        self.on_suspend = lambda: None
 
     def close(self):
         self.closed = True
 
     def read(self, address, size):
         if address == 0x400000 + self.spec["probe_candidates"]["game_info_root_rva"]:
-            return struct.pack("<I", self.info_root)
+            return None if self.scene_unreadable else struct.pack("<I", self.info_root)
         if address == self.info_root + 0x20:
             return struct.pack("<I", self.info_index)
         for index, stage in enumerate(self.record_stages):
@@ -136,6 +197,7 @@ class WrapperTransactionTests(unittest.TestCase):
         self.pause_count += 1
         self.paused = True
         try:
+            self.on_suspend()
             yield
         finally:
             self.paused = False
@@ -193,21 +255,56 @@ class WrapperTransactionTests(unittest.TestCase):
         self.assertEqual(self.memory.data, self.candidate)
         self.assertFalse(self.paused)
 
-    def test_stale_record_zero_menu_cannot_allow_writes_during_selected_gameplay(self):
+    def test_gameplay_slots_refuse_writes_independent_of_scene(self):
         self.info_index = 1
         self.record_stages[1] = 1212
+        self.observation["session"]["slots"][0]["slot_state"] = 2
         with tempfile.TemporaryDirectory() as directory:
             inspection = self.action("inspect", Path(directory))
             self.assertFalse(inspection["can_change"])
-            self.assertIn("1212", inspection["reason"])
-            with self.assertRaisesRegex(Rejected, "Main menu not verified"):
+            self.assertIn("slots", inspection["reason"])
+            with self.assertRaisesRegex(Rejected, "slots"):
                 self.action("apply", Path(directory))
         self.assertEqual(self.memory.writes, [])
         self.assertFalse(self.paused)
 
+    def test_reported_scene_904_idle_state_applies_and_restores_the_exact_bytes(self):
+        self.record_stages[0] = 904
+        self.observation["stage_field_candidate"] = 904
+        self.observation["session"]["fields"]["session_type_candidate"] = 0
+        with tempfile.TemporaryDirectory() as directory:
+            inspection = self.action("inspect", Path(directory))
+            self.assertEqual(inspection["observation"]["stage_field_candidate"], 904)
+            self.assertTrue(inspection["can_change"])
+            self.action("apply", Path(directory))
+            self.assertEqual(self.memory.data, self.candidate)
+            self.action("restore", Path(directory))
+            self.assertEqual(self.memory.data, self.original)
+
+    def test_unreadable_scene_does_not_block_an_independently_verified_idle_session(self):
+        self.scene_unreadable = True
+        with tempfile.TemporaryDirectory() as directory:
+            inspection = self.action("inspect", Path(directory))
+            self.assertIsNone(inspection["observation"]["stage_field_candidate"])
+            self.assertTrue(inspection["can_change"])
+            self.action("apply", Path(directory))
+        self.assertEqual(self.memory.data, self.candidate)
+
+    def test_session_that_becomes_active_after_refresh_is_refused_under_suspension(self):
+        with tempfile.TemporaryDirectory() as directory:
+            inspection = self.action("inspect", Path(directory))
+            self.assertTrue(inspection["can_change"])
+            self.on_suspend = lambda: self.observation["session"]["slots"][0].update(slot_state=2)
+            with self.assertRaisesRegex(Rejected, "slots"):
+                self.action("apply", Path(directory))
+        self.assertEqual(self.memory.writes, [])
+        self.assertFalse(self.paused)
+        self.assertTrue(self.closed)
+
     def test_diagnostics_export_is_read_only_and_records_the_rejected_scene(self):
         self.info_index = 2
         self.record_stages[2] = 1212
+        self.observation["session"]["slots"][0]["slot_state"] = 2
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory) / "report.json"
             with patch.object(launcher, "run_action", side_effect=lambda action: self.action(action, Path(directory))) as run:

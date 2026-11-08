@@ -1,44 +1,47 @@
-Fixes a menu-recognition defect: version 0.2.0 always read scene record zero.
-The game selects among four records; this update follows that selection and
-checks that it stays stable. This can explain "Not the observed menu scene"
-on another PC even when the supported game is visibly at its main menu.
-The scene check, inactive-session and no-player guards remain required.
+Removes screen/menu/scene requirements from **Apply** and **Restore**. The
+returned diagnostic showed stable scene **904**, record index 0, an inactive
+session and no player objects. Version 0.2.1 still refused it because it required
+scene 1102. The new launcher checks session/player/slot state instead.
 
-Adds **Save diagnostics** to export a local read-only JSON report if a refusal
-persists. It does not upload the report or change the running game.
+Download **RE6MercenariesPatch-0.2.2-windows-x64.zip**, extract it, start RE6
+normally through Steam, and open `RE6MercenariesPatch.exe`. Outside any lobby or
+round, click **Refresh → Apply**, then create a fresh Mercenaries lobby.
+No particular screen or menu is required. Python and a copied game folder are
+not needed. Full instructions are in the ZIP's `README.txt`.
 
-The portable Windows launcher applies the **exact three-site patch** used in
-the reported successful three-player standard Mercenaries and No Mercy sessions.
-The tested runtime modules and patch bytes are preserved unchanged.
+All eight slot states must be zero; session/player data must be readable and
+inactive. These checks run again while the process is suspended. Applying or
+restoring inside an existing lobby or round is refused. This patch sets up the
+next lobby; it does not resize an already-created lobby. Save diagnostics remains
+available and exports a local read-only report without uploading anything.
 
-Download **RE6MercenariesPatch-0.2.1-windows-x64.zip**, extract it, start RE6
-normally through Steam, and run `RE6MercenariesPatch.exe`. At the game's main
-menu, click **Refresh → Apply**, then host a fresh lobby. Python and a copied
-game folder are no longer required. Full instructions are in the ZIP's
-`README.txt`.
+The **exact three-site patch** and four original runtime files used for the
+reported three-player standard Mercenaries and No Mercy sessions remain
+unchanged. Exact executable/module identity, live code/context guards,
+transaction readback, rollback and process resumption remain required.
+No timer, mode, Steam-check, game-file or save changes have been added.
 
 The host applies the patch; friends initially join with unmodified clients.
-Turn Fluffy's trainer off, restarting RE6 if it was active this session.
-The mod manager itself can remain open. Closing RE6 discards the memory patch.
+Turn Fluffy's trainer off, restarting RE6 if it was active this session. The mod
+manager can remain open. Closing RE6 discards the memory patch.
 
-Compatibility is pinned to the original executable SHA-256
+Compatibility is pinned to executable SHA-256
 `b8bceaf09272d5f30b89940737763afa6dfb78647c81165af1aa8a10d0afeb35`.
-Different regional or modified 1.1.0 executables are refused. Windows 10/11
-64-bit is required by this packaged launcher.
+Other regional or modified files are refused. The package requires Windows 10/11
+64-bit. Three-player gameplay is user-reported; uploaded host captures separately
+verify third-player admission. Four or more actual players and exhaustive
+map/round coverage remain unverified.
 
-Three-player gameplay is user-reported. Uploaded host captures independently
-verify third-player admission. Six slots are configured, but four or more
-real players and exhaustive map/round coverage remain unverified. No timer,
-mode, save, game file or Steam-check patch has been added.
+All **80 local tests** pass with private input. Tests reproduce the friend's
+scene-904 inactive state and verify exact apply/restore output, refusal of active
+or unknown sessions (including slot zero), and a session changing after Refresh.
+Windows CI builds the executable and checks GUI startup without RE6; public
+checks skip private/platform-specific tests. The owner confirmed 0.2.0 works on
+their normal Steam installation. The affected friend's live application of this
+new release remains pending.
 
-Automated checks cover the frozen source hashes, patch identity, Steam library
-discovery, main-menu guards, apply/restore and rollback with synthetic memory,
-and Windows executable/GUI startup. All 74 tests pass locally with private input;
-public CI skips private/platform-specific tests. The owner confirms version 0.2.0
-works on their normal Steam installation. The affected friend's first live run
-with the corrected scene lookup is still pending.
-
-The source kit actually used for the gameplay report is frozen at
+The original source kit is frozen at
 [`v0.1.0-tested`](https://github.com/operatornorm/gigart/tree/v0.1.0-tested).
-See [the evidence](https://github.com/operatornorm/gigart/blob/main/docs/THREE-PLAYER-RESULT.md)
+See [the new guard and diagnostic evidence](https://github.com/operatornorm/gigart/blob/main/docs/MENU-STATE.md),
+[gameplay evidence](https://github.com/operatornorm/gigart/blob/main/docs/THREE-PLAYER-RESULT.md),
 and the release's `SHA256SUMS.txt` for download checksums.

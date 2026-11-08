@@ -20,10 +20,10 @@ Steam checks or saves. Closing RE6 removes the memory changes.
 
 ## Normal Steam installation
 
-The [portable Windows launcher](https://github.com/operatornorm/gigart/releases/tag/v0.2.1)
+The [portable Windows launcher](https://github.com/operatornorm/gigart/releases/tag/v0.2.2)
 adds Steam installation/process detection and **Refresh / Apply / Restore**
 buttons. Download the Windows ZIP, extract it outside the game folder, start RE6
-normally from Steam, and click Refresh then Apply at the main menu. Host a fresh
+normally from Steam, and click Refresh then Apply outside a lobby or round. Host a fresh
 lobby afterward. No Python, process-ID command or copied game folder is needed.
 The host applies it; friends initially join with their normal clients.
 
@@ -34,10 +34,13 @@ are refused. It reuses the four frozen runtime modules and all three tested patc
 records; it adds no timer or gameplay changes.
 
 The owner confirms version 0.2.0 works on their normal Steam installation.
-Version **0.2.1** corrects menu recognition to follow the game's selected scene
-record, and adds **Save diagnostics** for any remaining refusal. See
-[the defect, native evidence and regression checks](docs/MENU-STATE.md).
-The affected friend's first live run of this correction remains unverified.
+Version **0.2.2** removes all screen/menu/scene requirements. The friend's returned
+report showed a stable scene 904 and an inactive session; the earlier indexed
+scene correction did not resolve that refusal. Apply and Restore now require
+readable inactive session/player/slot state, with checks repeated during process
+suspension. Use **Save diagnostics** for any remaining refusal. See
+[the evidence and new conditions](docs/MENU-STATE.md). The new release's live
+application on the affected PC remains unverified.
 Automated Windows build/GUI startup and offline transaction checks do not run RE6.
 
 ## Original test kit
@@ -282,14 +285,14 @@ remains unbounded; no executable patch bytes changed. See the
 This cloud workspace has the privately supplied executable and returned diagnostic
 reports, not a complete playable RE6 installation, Windows game execution access,
 or four authenticated test clients. It cannot execute the real-client bot suite.
-The three-site patch is reproducible here. The current suite passes **74 tests**
+The three-site patch is reproducible here. The current suite passes **80 tests**
 locally with the private executable, including the new Steam discovery and
-wrapper transaction and selected-scene checks. Public CI skips two private-input tests;
+wrapper transaction, inactive-session and diagnostic scene checks. Public CI skips two private-input tests;
 Windows also skips the three Linux-native selector checks and the POSIX symlink
 test. Windows CI separately builds the portable executable and checks GUI startup.
 
 The original trial supplied the live three-player result. The owner reports
-normal-Steam launcher success. The affected friend's corrected-menu lookup,
+normal-Steam launcher success. The affected friend's new release,
 four or more real clients and exhaustive map/round coverage are not performed
 by this workspace. The three instruction patches and native timer remain unchanged.
 

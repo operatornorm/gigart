@@ -10,12 +10,13 @@ import re
 import sys
 
 from native_trial import (WindowsTrialProcess, apply_transaction, mutation_plan,
-                          require_idle_menu, validate_process)
+                          validate_process)
 from menu_state import selected_scene
 from patch_candidate import ROOT, Rejected, load_manifest
 from probe_windows import WindowsReader, snapshot
+from session_probe import read_u32
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 APP_ID = "221040"
 
 
@@ -142,7 +143,7 @@ def discover_installs(roots):
 def choose_pid(processes):
     matches = [pid for pid, name in processes if name.casefold() == "bh6.exe"]
     if not matches:
-        raise Rejected("Start Resident Evil 6 from Steam, reach the main menu, then click Refresh.")
+        raise Rejected("Start Resident Evil 6 from Steam, then click Refresh.")
     if len(matches) != 1:
         raise Rejected("More than one BH6.exe is running. Close the extra game instance and refresh.")
     return matches[0]
@@ -217,24 +218,35 @@ def launcher_snapshot(read, base, spec, disk):
     observation = snapshot(read, base, spec, disk)
     scene = selected_scene(read, base, spec)
     # Preserve the original kit's observation for diagnosis, but use the native
-    # selected record for the menu guard. The frozen collector remains unchanged.
+    # selected record for diagnostics. Neither scene reading gates patching.
     observation["legacy_unindexed_stage_field_candidate"] = observation["stage_field_candidate"]
     observation["scene_selection"] = scene
     observation["stage_field_candidate"] = scene["stage"]
     return observation
 
 
-def menu_check(reader, base, spec, observation):
-    scene = observation.get("scene_selection")
-    if (scene is None or scene["root_stable"] is not True
-            or scene["record_index_stable"] is not True or scene["stage"] is None):
-        raise Rejected("Menu state is unreadable or changing. Wait, refresh, or save diagnostics.")
-    if observation["stage_field_candidate"] != 1102:
-        stage = observation["stage_field_candidate"]
-        raise Rejected(f"Main menu not verified (scene {stage if stage is not None else 'unreadable'}). "
-                       "Return to the main menu and refresh. If already there, save diagnostics.")
-    absent = reader.read(base + spec["probe_candidates"]["player_manager_root_rva"], 4) == b"\0" * 4
-    require_idle_menu(observation, manager_absent=absent)
+def inactive_session_check(reader, base, spec, observation):
+    """Gate changes on session/player state, independently of screen or scene."""
+    session = observation["session"]
+    if session["root_stable"] is not True:
+        raise Rejected("Session state is unreadable or changing. Refresh or save diagnostics.")
+    fields = session["fields"]
+    if fields is None or fields.get("session_type_candidate") not in (0, 4):
+        raise Rejected("A host/join session may be active. Leave the lobby or round, then refresh.")
+    slots = session["slots"]
+    # Unlike the historical menu-only guard, include slot zero: there is no
+    # scene predicate to exclude the period before a solo player has spawned.
+    if slots is None or len(slots) != 8 or any(row.get("slot_state") != 0 for row in slots):
+        raise Rejected("Lobby or round slots are active or unreadable. Leave the session, then refresh.")
+    manager = read_u32(reader.read, base + spec["probe_candidates"]["player_manager_root_rva"])
+    objects = observation["player_objects"]
+    if manager == 0:  # Readable null is distinct from an unsuccessful read.
+        if objects["entry_present"] in (None, [False] * 8):
+            return
+        raise Rejected("Player state changed or is unreadable. Refresh or save diagnostics.")
+    if (manager is None or not 0x10000 <= manager <= 0xFFF00000
+            or objects["root_stable"] is not True or objects["entry_present"] != [False] * 8):
+        raise Rejected("Player objects are active or unreadable. Leave the round, then refresh.")
 
 
 def audit_directory():
@@ -268,25 +280,26 @@ def run_action(action="inspect"):
         reader = WindowsTrialProcess(pid) if changing else WindowsReader(pid)
         base, disk = validate_steam_process(reader, spec, installs)
         if changing:
-            # All original writer, pause, state, guard and rollback logic is reused.
+            # Reuse the original writer/transaction with screen-independent
+            # session checks, revalidated while every game thread is paused.
             with reader.suspended():
                 base, disk = validate_steam_process(reader, spec, installs)
                 before = launcher_snapshot(reader.read, base, spec, disk)
-                menu_check(reader, base, spec, before)
+                inactive_session_check(reader, base, spec, before)
                 plans = mutation_plan(reader.read, base, disk, spec, restore=action == "restore")
                 apply_transaction(reader.read, reader.write_code, plans)
                 completed = True
                 report["before"] = before
                 report["after"] = launcher_snapshot(reader.read, base, spec, disk)
             state = "applied" if action == "apply" else "original"
-            can_change, reason = True, "Ready at the main menu."
+            can_change, reason = True, "No active session. Ready."
         else:
             state = code_state(reader, base, disk, spec)
             observation = launcher_snapshot(reader.read, base, spec, disk)
             report["observation"] = observation
             try:
-                menu_check(reader, base, spec, observation)
-                can_change, reason = True, "Ready at the main menu."
+                inactive_session_check(reader, base, spec, observation)
+                can_change, reason = True, "No active session. Ready."
             except Rejected as exc:
                 can_change, reason = False, str(exc)
         report.update(state=state, can_change=can_change, reason=reason)
@@ -337,11 +350,11 @@ def gui(smoke_test=False):
     ttk.Label(frame, text="Three-player play reported in standard Mercenaries and No Mercy.\n"
               "Uses the exact tested patch. Four or more players remain unverified.",
               wraplength=600).pack(anchor="w", pady=(8, 14))
-    ttk.Label(frame, text="1. Start RE6 normally through Steam; stay at the main menu.\n"
+    ttk.Label(frame, text="1. Start RE6 through Steam, outside any lobby or round.\n"
               "2. Turn Fluffy's trainer off, then click Refresh and Apply.\n"
               "3. Host a fresh Mercenaries lobby and invite your friends.",
               wraplength=600).pack(anchor="w")
-    status = tk.StringVar(value="Click Refresh after RE6 reaches its main menu.")
+    status = tk.StringVar(value="Click Refresh after RE6 starts. No particular menu is required.")
     ttk.Label(frame, textvariable=status, wraplength=600).pack(anchor="w", pady=18)
     controls = ttk.Frame(frame)
     controls.pack(anchor="w")
@@ -355,7 +368,7 @@ def gui(smoke_test=False):
             result = run_action(action)
             active = result["state"] == "applied"
             status.set(("Patch applied. Host a fresh lobby." if result["can_change"] else
-                        "Patch applied. Return to the main menu to restore.") if active else
+                        "Patch applied. Leave the lobby or round before restoring.") if active else
                        "Original game code. " + result["reason"])
             if result["can_change"]:
                 (restore if active else apply).configure(state="normal")
@@ -394,7 +407,7 @@ def gui(smoke_test=False):
     for button in buttons:
         button.pack(side="left", padx=(0, 10))
     ttk.Label(frame, text="Apply once per game launch. Closing RE6 restores original code.\n"
-              "Return to the main menu before Restore. No game files or saves are edited.",
+              "Leave the session before Restore. No game files or saves are edited.",
               wraplength=600).pack(anchor="w", pady=(16, 0))
     if smoke_test:
         root.update()

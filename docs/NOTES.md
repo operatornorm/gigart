@@ -409,3 +409,21 @@ published.
 - All 74 local tests pass with private input, including stale-record regressions
   in both directions and verification of native getter/constructor bytes. The
   affected friend's first live confirmation of the correction remains pending.
+
+
+## 2026-11-08: scene-904 diagnostic; screen-independent inactive-session checks
+
+- The returned 0.2.1 report shows stable record index0 and scene904, sessiontype0,
+  all eight slot states0 and a stable empty player table. Exact original/current
+  and historical code checks pass. Raw report remains ignored in local/runtime-input.
+- This does not support the earlier nonzero-index explanation for this PC. The
+  scene1102 requirement was too restrictive; no new scene allowlist is added.
+- Version0.2.2 removes screen/menu/scene requirements. It verifies inactive
+  session0/4, all eight slot states0 (including slot0), and no player objects;
+  unreadable session/player data is refused. Checks repeat under suspension.
+- The original write backend, four runtime source files and all three instruction
+  patches remain unchanged. Existing lobbies must be recreated for initialization
+  changes to take effect. Applying/restoring inside a lobby or round is refused.
+- All80 local tests pass with private input. The reported idle scene904 and an
+  unreadable scene are accepted; active/unknown state and post-Refresh state
+  changes are refused before writes. The affected PC's live result is pending.

@@ -4,9 +4,7 @@ import struct
 import unittest
 
 from menu_state import RECORD_COUNT, RECORD_STRIDE, selected_scene
-from patch_candidate import Rejected, inspect_bytes, load_manifest
-from steam_patch import menu_check
-from test_native_trial import menu_observation
+from patch_candidate import inspect_bytes, load_manifest
 
 
 class SelectedSceneTests(unittest.TestCase):
@@ -41,19 +39,15 @@ class SelectedSceneTests(unittest.TestCase):
                 self.assertTrue(scene["root_stable"])
                 self.assertTrue(scene["record_index_stable"])
 
-    def test_selected_record_controls_guard_in_both_directions(self):
+    def test_selected_record_is_reported_instead_of_stale_record_zero(self):
         self.values[self.root + 0x20] = 1
         self.values[self.root + 0x412A4] = 0
-        observation = menu_observation()
-        observation["scene_selection"] = self.scene()
-        observation["stage_field_candidate"] = observation["scene_selection"]["stage"]
-        menu_check(self, self.base, self.spec, observation)
+        self.assertEqual(self.scene()["stage"], 1102)
         self.values[self.root + 0x412A4] = 1102
         self.values[self.root + 0x412A4 + RECORD_STRIDE] = 1212
-        observation["scene_selection"] = self.scene()
-        observation["stage_field_candidate"] = observation["scene_selection"]["stage"]
-        with self.assertRaisesRegex(Rejected, "1212"):
-            menu_check(self, self.base, self.spec, observation)
+        scene = self.scene()
+        self.assertEqual(scene["stage"], 1212)
+        self.assertEqual(scene["record_zero_stage"], 1102)
 
     def test_invalid_roots_indices_and_short_reads_cannot_fall_back_to_record_zero(self):
         for value in (None, 0, 0xFFFF, 0xFFFFFFFF, b"\x00"):
@@ -68,10 +62,6 @@ class SelectedSceneTests(unittest.TestCase):
                 scene = self.scene()
                 self.assertIsNone(scene["stage"])
                 self.assertNotIn(self.root + 0x412A4, self.reads)
-                observation = menu_observation()
-                observation["scene_selection"] = scene
-                with self.assertRaisesRegex(Rejected, "unreadable or changing"):
-                    menu_check(self, self.base, self.spec, observation)
 
     def test_unreadable_selected_stage_is_unknown_even_when_record_zero_is_menu(self):
         self.values[self.root + 0x20] = 1
