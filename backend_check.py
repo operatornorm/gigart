@@ -8,7 +8,8 @@ import subprocess
 import tempfile
 import time
 
-from native_trial import WindowsTrialProcess, apply_transaction
+from native_trial import apply_transaction
+from proton_process import ProtonTrialProcess
 from patch_candidate import Rejected
 
 
@@ -62,10 +63,16 @@ def run_check(fixture):
             state = json.loads(ready.read_text())
             if state["pid"] != child.pid or state["pointer_bits"] != 32:
                 raise Rejected("Unexpected backend fixture identity or architecture.")
-            reader = WindowsTrialProcess(child.pid)
+            reader = ProtonTrialProcess(child.pid)
             if reader.image_path().resolve() != fixture:
                 raise Rejected("The opened process is not the owned fixture.")
             address, counter = state["address"], state["counter"]
+            module_base, module_size = reader.module()
+            disk = fixture.read_bytes()
+            pe = struct.unpack_from("<I", disk, 0x3C)[0]
+            expected_size = struct.unpack_from("<I", disk, pe + 24 + 56)[0]
+            if reader.read(module_base, 2) != b"MZ" or module_size != expected_size:
+                raise Rejected("Owned fixture module/header discovery differs from its file.")
 
             def tick():
                 data = reader.read(counter, 4)
@@ -97,6 +104,7 @@ def run_check(fixture):
             require(reader.read(address, 64) == original, "Fixture original bytes were not restored.")
             return {"success": True, "target": "owned 32-bit synthetic fixture; no game access",
                     "helper_pointer_bits": ctypes.sizeof(ctypes.c_void_p) * 8,
+                    "module_discovery": reader.module_discovery,
                     "read_only_page_write": True, "apply_restore_readback": True,
                     "page_protection_restored": True, "suspend_and_resume_observed": True}
         finally:

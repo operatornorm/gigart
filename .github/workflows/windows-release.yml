@@ -59,6 +59,10 @@ jobs:
     needs: windows-build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        wine: [distro, wine11]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -68,11 +72,26 @@ jobs:
         with:
           name: windows-launcher
           path: windows-artifact
-      - name: Install Wine and owned-fixture compiler
+      - name: Install owned-fixture compiler and display tools
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends wine wine64 wine32:i386 gcc-mingw-w64-i686 xvfb xauth
+          sudo apt-get install -y --no-install-recommends gcc-mingw-w64-i686 xvfb xauth curl
+      - name: Install distribution Wine
+        if: matrix.wine == 'distro'
+        run: sudo apt-get install -y --no-install-recommends wine wine64 wine32:i386
+      - name: Install Wine 11 from the signed upstream WineHQ repository
+        if: matrix.wine == 'wine11'
+        run: |
+          sudo install -d -m 755 /etc/apt/keyrings
+          curl -fL https://dl.winehq.org/wine-builds/winehq.key -o "$RUNNER_TEMP/winehq-archive.key"
+          curl -fL https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources -o "$RUNNER_TEMP/winehq-noble.sources"
+          sudo install -m 644 "$RUNNER_TEMP/winehq-archive.key" /etc/apt/keyrings/winehq-archive.key
+          sudo install -m 644 "$RUNNER_TEMP/winehq-noble.sources" /etc/apt/sources.list.d/winehq-noble.sources
+          sudo apt-get update -qq
+          sudo apt-get install -y --install-recommends winehq-stable
+          wine --version
+          wine --version | python -c 'import sys; assert sys.stdin.read().startswith("wine-11.")'
       - name: Prepare helper and 32-bit fixture
         run: |
           python - <<'PY'
@@ -92,15 +111,17 @@ jobs:
           WINEDLLOVERRIDES: 'mscoree,mshtml='
         run: xvfb-run -a python tools/check_wine.py --helper wine-test/RE6MercenariesPatch.exe --fixture wine-test/RE6BackendFixture.exe
       - name: Package Proton preview
+        if: matrix.wine == 'distro'
         run: python tools/package_proton.py --helper wine-test/RE6MercenariesPatch.exe
       - name: Retain synthetic check reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: wine-check-reports
+          name: wine-check-reports-${{ matrix.wine }}
           path: wine-test/*-result.json
           if-no-files-found: ignore
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: matrix.wine == 'distro'
         with:
           name: proton-preview
           path: |

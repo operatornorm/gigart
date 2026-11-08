@@ -46,7 +46,7 @@ Automated Windows build/GUI startup and offline transaction checks do not run RE
 
 ## Desktop Linux with native Steam / Proton preview
 
-The separate [Proton preview](https://github.com/operatornorm/gigart/releases/tag/v0.3.0-proton-preview.2)
+The separate [Proton preview](https://github.com/operatornorm/gigart/releases/tag/v0.3.0-proton-preview.3)
 targets the requested **Artix Linux + Proton Experimental** trial. The confirmed
 Windows v0.2.2 release above stays unchanged. The patch instructions and four
 original runtime modules are reused without changes.
@@ -59,7 +59,8 @@ library path. Click Refresh, then Apply. See [full setup and first-trial steps](
 
 This is a prerelease with **no live RE6/Proton confirmation yet**. Automated
 checks cover native library discovery, path handling, packaged GUI startup and
-Wine process APIs using an owned 32-bit fixture. They do not execute RE6, Steam
+Wine process APIs and direct WoW64 image discovery using an owned 32-bit fixture
+on distribution Wine and upstream WineHQ 11. They do not execute RE6, Steam
 or Valve Proton. The first live trial needs only Apply and a fresh empty lobby
 capture, without other clients or a round. Flatpak Steam/Protontricks, Deck
 Gaming Mode and custom pure-32-bit prefixes are outside this first trial.
@@ -306,7 +307,7 @@ remains unbounded; no executable patch bytes changed. See the
 This cloud workspace has the privately supplied executable and returned diagnostic
 reports, not a complete playable RE6 installation, Windows game execution access,
 or four authenticated test clients. It cannot execute the real-client bot suite.
-The three-site patch is reproducible here. The current suite passes **93 tests**
+The three-site patch is reproducible here. The current suite passes **99 tests**
 locally with the private executable, including the new Steam discovery and
 wrapper transaction, inactive-session and diagnostic scene checks. Public CI skips two private-input tests;
 Windows also skips the three Linux-native selector checks and the POSIX symlink

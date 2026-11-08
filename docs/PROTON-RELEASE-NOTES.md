@@ -1,4 +1,22 @@
-Proton preview.2 fixes path matching between the game and helper: **file identity**
+Preview.3 replaces Proton module enumeration with a **WoW64 PEB32 image query**.
+The returned Wine 11.0 diagnostic got past file-identity comparison, then failed
+inside executable verification with WinError 998. Wine 11's Toolhelp path is a
+suspected source: it reads the native loader list when this helper needs the
+32-bit game image. The new Proton reader queries ProcessWow64Information and
+reads/rechecks PEB32.ImageBaseAddress and bounded PE32 headers instead.
+
+This does not assume a module base or skip identity checks. The original
+validator still requires base **0x400000**, image size **21671936**, the exact
+original file hash, live headers and all three instruction/context guards.
+The four original runtime modules and patch records remain unchanged. Failure
+reports now include the query stage and module-discovery details.
+
+CI checks the new module query, file aliases and the synthetic 32-bit process
+transaction under both distribution Wine and upstream WineHQ 11. No live
+RE6/Proton gameplay is exercised by these checks. The affected Experimental
+runtime still needs live confirmation with this release.
+
+Retains preview.2 path matching between the game and helper: **file identity**
 now accepts different Wine drive/path aliases of the same registered executable.
 Independent copies with identical bytes remain rejected. Exact executable hash,
 module, code/context and inactive-session checks still apply.
@@ -7,7 +25,7 @@ Includes **--game-dir** selection for dual-boot libraries and pins Protontricks 
 the chosen installation's compatibility prefix. Failed Refresh checks now export
 read-only diagnostics with the actual process path and registered candidate paths.
 
-**Desktop Linux / native Steam Proton preview.2**. The confirmed Windows
+**Desktop Linux / native Steam Proton preview.3**. The confirmed Windows
 [`v0.2.2`](https://github.com/operatornorm/gigart/releases/tag/v0.2.2) release is
 preserved unchanged, with its source and binary checksums recorded in the repo.
 

@@ -501,3 +501,26 @@ published.
   drive pointing to the registered synthetic image and an unrelated equal-byte
   file, checking acceptance/rejection before the existing32-bit writer fixture.
   The affected Artix/Proton Experimental run still needs live confirmation.
+
+
+## 2026-11-08: Wine11 WinError998; query the32-bit process image directly
+
+- Returned preview.2 report records Wine11.0, process image on S: and registered
+  images on Z:. File-identity matching no longer produces the prior rejection;
+  raw WinError998 occurs inside the subsequent validate_process call. No module
+  observation or individual failing operation was captured, so its exact source
+  is not proved. The transaction was not completed; the report is read-only.
+- Wine11 toolhelp.c fetch_module uses ProcessBasicInformation and native loader
+  structures. NtQueryInformationProcess ProcessWow64Information explicitly returns
+  the32-bit PEB for a32-bit target. Replaced the Proton-only module path with this
+  query, bounded DOS/PE32 header reads and PEB/base rechecks. No base is guessed;
+  the unchanged core still pins base0x400000, size21671936 and full disk identity.
+- ProtonReader/ProtonTrialProcess reuse the original read/write backend and apply
+  transaction. A separate information-only handle performs the PEB query, keeping
+  original handle masks unchanged. The frozen four runtime files and patch bytes
+  remain identical. Failed diagnostics now carry module/query-stage details.
+- All99 local tests pass with private input. Added malformed/unreadable/changing
+  PEB/header cases. The owned32-bit process check now validates module discovery
+  against its actual PE header before the original pause/write/restore test.
+  The release gate adds upstream WineHQ11 beside distribution Wine. This is not
+  a live RE6/Proton result; the affected Artix run remains pending.

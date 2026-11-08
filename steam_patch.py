@@ -16,7 +16,7 @@ from patch_candidate import ROOT, Rejected, load_manifest
 from probe_windows import WindowsReader, snapshot
 from session_probe import read_u32
 
-VERSION = "0.3.0-proton-preview.2"
+VERSION = "0.3.0-proton-preview.3"
 APP_ID = "221040"
 
 
@@ -299,10 +299,16 @@ def run_action(action="inspect", proton_library=None):
               "platform": platform, "registered_executable_paths": [str(path) for path in installs],
               "executable_identity_verified": False}
     try:
-        reader = WindowsTrialProcess(pid) if changing else WindowsReader(pid)
+        if proton_library is None:
+            reader = WindowsTrialProcess(pid) if changing else WindowsReader(pid)
+        else:
+            from proton_process import ProtonReader, ProtonTrialProcess
+            reader = ProtonTrialProcess(pid) if changing else ProtonReader(pid)
         report["process_image_path"] = str(reader.image_path())
         base, disk = validate_steam_process(reader, spec, installs)
         report["executable_identity_verified"] = True
+        if hasattr(reader, "module_discovery"):
+            report["module_discovery"] = reader.module_discovery
         if changing:
             # Reuse the original writer/transaction with screen-independent
             # session checks, revalidated while every game thread is paused.
@@ -331,6 +337,10 @@ def run_action(action="inspect", proton_library=None):
     except Exception as exc:
         report["error"] = str(exc)
         report["transaction_completed"] = completed
+        if reader is not None and hasattr(reader, "validation_stage"):
+            report["validation_stage"] = reader.validation_stage
+        if reader is not None and hasattr(reader, "module_discovery"):
+            report["module_discovery"] = reader.module_discovery
         if not changing:
             # Failed path/identity checks are useful diagnostics too. Inspection
             # retains a read-only handle; no state is considered patchable here.

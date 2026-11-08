@@ -22,7 +22,7 @@ def main():
     assert helper[:2] == b"MZ"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     files = {name: (ROOT / name).read_bytes() for name in (
-        "run-proton.sh", "proton_launcher.py", "proton_support.py", "steam_patch.py",
+        "run-proton.sh", "proton_launcher.py", "proton_support.py", "proton_process.py", "steam_patch.py",
         "backend_check.py", "menu_state.py", "native_trial.py", "patch_candidate.py",
         "probe_windows.py", "session_probe.py", "candidate.json", "docs/tested-build.json",
         "docs/tested-steam-build.json")}

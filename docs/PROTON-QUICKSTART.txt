@@ -1,4 +1,4 @@
-RE6 Mercenaries Patch - desktop Linux / native Steam Proton preview.2
+RE6 Mercenaries Patch - desktop Linux / native Steam Proton preview.3
 
 STATUS
 The Windows v0.2.2 release is confirmed by the user and stays unchanged:
@@ -64,7 +64,11 @@ CUSTOM PATHS / TROUBLESHOOTING
 - To check paths and print the command without launching the helper:
   bash ./run-proton.sh --dry-run
 - A custom STEAM_COMPAT_DATA_PATH must be set to the same path used for RE6.
-- Preview.2 compares executable file identity rather than path text, so Wine
+- Preview.3 uses a direct WoW64 PEB32 query for the 32-bit game image, avoiding
+  the module-list call suspected in the Wine 11 WinError 998 report. Image base,
+  size, executable hash and live code/context checks still apply. Diagnostics
+  record the stage and module-query details on any remaining failure.
+- Preview.2 and later compare executable file identity rather than path text, so Wine
   drive aliases of the same registered file are accepted. An independent copy
   with identical bytes is still rejected. Failed Refresh checks can now be
   exported with Save diagnostics, including the actual/registered image paths.
