@@ -479,3 +479,25 @@ published.
   rejection of unregistered/modified targets and custom-XDG root discovery.
   This is a compatible Linux-only script update; the existing preview helper
   executable and patch bytes remain unchanged.
+
+
+## 2026-11-08: Proton image identity uses files rather than path spelling
+
+- The native game-folder selector starts the helper successfully. Refresh then
+  rejects the process path as unregistered. A read-only /proc mapping check
+  confirms the running BH6.exe is from the selected native Linux installation,
+  rather than the second mounted Windows library. The exact Windows-side path
+  returned by Wine has not yet been captured.
+- Preview.2 compares os.path.samefile identities instead of resolved path strings.
+  Drive and symlink aliases of a registered file are accepted; independent copies
+  with equal bytes remain refused. Exact binary/module and live code checks are
+  still required after this predicate. All four original runtime files and the
+  three patch instruction records remain unchanged.
+- Refresh failures now return a non-patchable read-only report with actual process
+  path, registered candidate paths, error and identity-validation status. Save
+  diagnostics can export these reports without opening the writer. The GUI no
+  longer calls an unverified image original game code.
+- All93 local tests pass with private input. The Wine integration adds a second
+  drive pointing to the registered synthetic image and an unrelated equal-byte
+  file, checking acceptance/rejection before the existing32-bit writer fixture.
+  The affected Artix/Proton Experimental run still needs live confirmation.

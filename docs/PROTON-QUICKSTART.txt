@@ -1,4 +1,4 @@
-RE6 Mercenaries Patch - desktop Linux / native Steam Proton preview
+RE6 Mercenaries Patch - desktop Linux / native Steam Proton preview.2
 
 STATUS
 The Windows v0.2.2 release is confirmed by the user and stays unchanged:
@@ -23,9 +23,12 @@ FIRST TRIAL
    together. Turn other trainers off; restart RE6 if one was active.
 2. Start RE6 normally from Steam using the Proton version selected for RE6.
    Stay outside any lobby or round. No particular screen/menu is required.
-3. Open a terminal in the extracted folder and run:
+3. Open a terminal in the extracted folder and run. For the confirmed dual-boot
+   layout on the first Artix test machine, select the native copy explicitly:
 
-   bash ./run-proton.sh
+   bash ./run-proton.sh --steam-dir "$HOME/.local/share/Steam" --game-dir "$HOME/.local/share/Steam/steamapps/common/Resident Evil 6"
+
+   With exactly one registered RE6 installation, bash ./run-proton.sh is enough.
 
 4. In the patch window, click Refresh. If the supported game is recognized and
    Apply is enabled, click Apply. Save diagnostics afterward for the first trial.
@@ -50,7 +53,7 @@ CUSTOM PATHS / TROUBLESHOOTING
 - For a nonstandard native Steam client root:
   bash ./run-proton.sh --steam-dir "/path/to/Steam"
 - When Steam lists both a native Linux installation and a mounted Windows copy,
-  use the updated proton_launcher.py from the repository and select the folder
+  select the folder
   opened by Steam's Browse local files:
   bash ./run-proton.sh --game-dir "/path/to/Steam/steamapps/common/Resident Evil 6"
   --steam-dir selects the Steam client root; --game-dir selects the game folder.
@@ -61,6 +64,10 @@ CUSTOM PATHS / TROUBLESHOOTING
 - To check paths and print the command without launching the helper:
   bash ./run-proton.sh --dry-run
 - A custom STEAM_COMPAT_DATA_PATH must be set to the same path used for RE6.
+- Preview.2 compares executable file identity rather than path text, so Wine
+  drive aliases of the same registered file are accepted. An independent copy
+  with identical bytes is still rejected. Failed Refresh checks can now be
+  exported with Save diagnostics, including the actual/registered image paths.
 - If the helper cannot see an already-running game, confirm Protontricks uses
   the same Proton version/prefix as Steam. Do not add this helper as a separate
   non-Steam game; that creates a different prefix. Do not run it using system

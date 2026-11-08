@@ -1,4 +1,13 @@
-First **desktop Linux / native Steam Proton preview**. The confirmed Windows
+Proton preview.2 fixes path matching between the game and helper: **file identity**
+now accepts different Wine drive/path aliases of the same registered executable.
+Independent copies with identical bytes remain rejected. Exact executable hash,
+module, code/context and inactive-session checks still apply.
+
+Includes **--game-dir** selection for dual-boot libraries and pins Protontricks to
+the chosen installation's compatibility prefix. Failed Refresh checks now export
+read-only diagnostics with the actual process path and registered candidate paths.
+
+**Desktop Linux / native Steam Proton preview.2**. The confirmed Windows
 [`v0.2.2`](https://github.com/operatornorm/gigart/releases/tag/v0.2.2) release is
 preserved unchanged, with its source and binary checksums recorded in the repo.
 

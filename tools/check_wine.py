@@ -30,6 +30,19 @@ def main():
                                       "--self-test-report", "Z:" + str(startup).replace("/", "\\")], timeout=90)
     if result.returncode:
         raise RuntimeError(startup.read_text() if startup.exists() else "Wine helper startup failed before reporting.")
+    # Map the same native library through a second Wine drive to reproduce the
+    # differing path spellings used by a game and an external helper.
+    drive = Path(os.environ["WINEPREFIX"]) / "dosdevices/q:"
+    drive.symlink_to(library, target_is_directory=True)
+    unrelated = helper.parent / "Separate BH6.exe"
+    unrelated.write_bytes(game.read_bytes())  # Same bytes, distinct file identity.
+    alias_report = helper.parent / "alias-result.json"
+    result = subprocess.run(command + ["--self-test", "--proton-library", wine_path(library),
+                                      "--self-test-image-alias", r"Q:\steamapps\common\Resident Evil 6\BH6.exe",
+                                      "--self-test-unregistered-image", wine_path(unrelated),
+                                      "--self-test-report", "Z:" + str(alias_report).replace("/", "\\")], timeout=90)
+    if result.returncode:
+        raise RuntimeError(alias_report.read_text() if alias_report.exists() else "Wine drive alias check failed.")
     report = helper.parent / "backend-result.json"
     process = subprocess.run(command + ["--backend-self-test", wine_path(fixture),
                                        "--self-test-report", "Z:" + str(report).replace("/", "\\")],

@@ -16,7 +16,7 @@ from patch_candidate import ROOT, Rejected, load_manifest
 from probe_windows import WindowsReader, snapshot
 from session_probe import read_u32
 
-VERSION = "0.3.0-proton-preview.1"
+VERSION = "0.3.0-proton-preview.2"
 APP_ID = "221040"
 
 
@@ -195,11 +195,23 @@ def pinned_manifest():
     return spec
 
 
+def registered_image_matches(actual, installs):
+    # Proton can expose one native file through Z:, another Wine drive, and
+    # host symlinks. Compare file identities, never only names or equal hashes.
+    for path in installs:
+        try:
+            if os.path.samefile(actual, path):
+                return True
+        except (OSError, ValueError):
+            continue
+    return False
+
+
 def validate_steam_process(reader, spec, installs):
     actual = reader.image_path()
-    if path_key(actual) not in {path_key(path) for path in installs}:
-        raise Rejected("The running game is not a registered RE6 Steam installation. "
-                       "Close the test copy and launch RE6 through Steam.")
+    if not registered_image_matches(actual, installs):
+        raise Rejected("Running RE6 file identity does not match the selected Steam installation. "
+                       "Save diagnostics to record the actual and expected paths.")
     return validate_process(reader, spec)
 
 
@@ -284,10 +296,13 @@ def run_action(action="inspect", proton_library=None):
     completed = False
     report = {"launcher_version": VERSION, "action": action,
               "tested_source": "v0.1.0-tested", "exe_sha256": spec["input_sha256"],
-              "platform": platform}
+              "platform": platform, "registered_executable_paths": [str(path) for path in installs],
+              "executable_identity_verified": False}
     try:
         reader = WindowsTrialProcess(pid) if changing else WindowsReader(pid)
+        report["process_image_path"] = str(reader.image_path())
         base, disk = validate_steam_process(reader, spec, installs)
+        report["executable_identity_verified"] = True
         if changing:
             # Reuse the original writer/transaction with screen-independent
             # session checks, revalidated while every game thread is paused.
@@ -316,6 +331,11 @@ def run_action(action="inspect", proton_library=None):
     except Exception as exc:
         report["error"] = str(exc)
         report["transaction_completed"] = completed
+        if not changing:
+            # Failed path/identity checks are useful diagnostics too. Inspection
+            # retains a read-only handle; no state is considered patchable here.
+            report.update(state="unverified", can_change=False, reason=str(exc))
+            return report
         if completed:
             raise Rejected(f"Code transaction completed before a later error: {exc} "
                            "Close RE6 to discard memory changes.") from exc
@@ -378,9 +398,12 @@ def gui(smoke_test=False, proton_library=None):
         try:
             result = run_action(action, proton_library=proton_library)
             active = result["state"] == "applied"
-            status.set(("Patch applied. Host a fresh lobby." if result["can_change"] else
-                        "Patch applied. Leave the lobby or round before restoring.") if active else
-                       "Original game code. " + result["reason"])
+            if result["state"] == "unverified":
+                status.set("RE6 could not be verified. " + result["reason"])
+            else:
+                status.set(("Patch applied. Host a fresh lobby." if result["can_change"] else
+                            "Patch applied. Leave the lobby or round before restoring.") if active else
+                           "Original game code. " + result["reason"])
             if result["can_change"]:
                 (restore if active else apply).configure(state="normal")
         except (OSError, ValueError, AttributeError) as exc:
@@ -436,6 +459,8 @@ def main():
                          help="Save a read-only report, including selected-scene diagnostics.")
     actions.add_argument("--backend-self-test", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--self-test-report", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--self-test-image-alias", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--self-test-unregistered-image", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--proton-library", type=Path,
                         help="Proton only: native Steam library exposed through Wine's Z: drive.")
     args = parser.parse_args()
@@ -457,8 +482,15 @@ def main():
             if args.proton_library is not None:
                 from proton_support import checked_library
                 library, _ = checked_library(args.proton_library)
-                if not discover_installs([library]):
+                installed = discover_installs([library])
+                if not installed:
                     raise Rejected("Synthetic Steam library was not discovered.")
+                if args.self_test_image_alias is not None and not registered_image_matches(
+                        args.self_test_image_alias, installed):
+                    raise Rejected("Wine file identity alias did not match the registered synthetic image.")
+                if args.self_test_unregistered_image is not None and registered_image_matches(
+                        args.self_test_unregistered_image, installed):
+                    raise Rejected("An unrelated file matched the registered synthetic image.")
             gui(smoke_test=True, proton_library=args.proton_library)
         except Exception as exc:
             if args.self_test_report is not None:

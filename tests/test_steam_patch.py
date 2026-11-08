@@ -91,9 +91,34 @@ class SteamDiscoveryTests(unittest.TestCase):
         reader = unittest.mock.Mock()
         reader.image_path.return_value = Path("/other-copy/BH6.exe")
         with patch.object(launcher, "validate_process") as validate:
-            with self.assertRaisesRegex(Rejected, "registered"):
+            with self.assertRaisesRegex(Rejected, "file identity"):
                 launcher.validate_steam_process(reader, {}, [Path("/steam/common/RE6/BH6.exe")])
             validate.assert_not_called()
+
+    def test_file_identity_alias_passes_but_still_requires_core_validation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registered = Path(directory) / "BH6.exe"
+            registered.write_bytes(b"synthetic image")
+            alias = Path(directory) / "Alias.exe"
+            alias.hardlink_to(registered)
+            reader = unittest.mock.Mock()
+            reader.image_path.return_value = alias
+            with patch.object(launcher, "validate_process", return_value=(123, b"disk")) as validate:
+                self.assertEqual(launcher.validate_steam_process(reader, {}, [registered]), (123, b"disk"))
+                validate.assert_called_once_with(reader, {})
+
+    def test_separate_copy_with_identical_content_is_not_a_registered_alias(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registered = Path(directory) / "BH6.exe"
+            registered.write_bytes(b"same synthetic bytes")
+            copy = Path(directory) / "Separate.exe"
+            copy.write_bytes(registered.read_bytes())
+            reader = unittest.mock.Mock()
+            reader.image_path.return_value = copy
+            with patch.object(launcher, "validate_process") as validate:
+                with self.assertRaisesRegex(Rejected, "file identity"):
+                    launcher.validate_steam_process(reader, {}, [registered])
+                validate.assert_not_called()
 
 
 class InactiveSessionTests(unittest.TestCase):
@@ -175,6 +200,9 @@ class WrapperTransactionTests(unittest.TestCase):
 
     def close(self):
         self.closed = True
+
+    def image_path(self):
+        return Path("/steam/BH6.exe")
 
     def read(self, address, size):
         if address == 0x400000 + self.spec["probe_candidates"]["game_info_root_rva"]:
@@ -318,6 +346,24 @@ class WrapperTransactionTests(unittest.TestCase):
             self.assertEqual(report["observation"]["stage_field_candidate"], 1212)
         self.assertEqual(self.memory.writes, [])
         self.assertEqual(self.pause_count, 0)
+
+    def test_failed_identity_inspection_can_be_exported_without_enabling_writes(self):
+        def reject(reader, spec, installs):
+            raise Rejected("file identity mismatch for synthetic alias")
+        self.validate = reject
+        with tempfile.TemporaryDirectory() as directory:
+            report = self.action("inspect", Path(directory))
+            self.assertEqual(report["state"], "unverified")
+            self.assertFalse(report["can_change"])
+            self.assertFalse(report["executable_identity_verified"])
+            self.assertIn("BH6.exe", report["process_image_path"])
+            self.assertTrue(report["registered_executable_paths"])
+            self.assertIn("file identity mismatch", report["error"])
+            with self.assertRaisesRegex(Rejected, "file identity mismatch"):
+                self.action("apply", Path(directory))
+        self.assertEqual(self.memory.writes, [])
+        self.assertEqual(self.pause_count, 0)
+        self.assertTrue(self.closed)
 
     def test_diagnostics_cannot_overwrite_files_or_use_non_json_destination(self):
         with tempfile.TemporaryDirectory() as directory:
