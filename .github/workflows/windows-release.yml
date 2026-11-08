@@ -93,6 +93,13 @@ jobs:
         run: xvfb-run -a python tools/check_wine.py --helper wine-test/RE6MercenariesPatch.exe --fixture wine-test/RE6BackendFixture.exe
       - name: Package Proton preview
         run: python tools/package_proton.py --helper wine-test/RE6MercenariesPatch.exe
+      - name: Retain synthetic check reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: wine-check-reports
+          path: wine-test/*-result.json
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: proton-preview

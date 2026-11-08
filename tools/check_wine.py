@@ -31,12 +31,13 @@ def main():
     if result.returncode:
         raise RuntimeError(startup.read_text() if startup.exists() else "Wine helper startup failed before reporting.")
     report = helper.parent / "backend-result.json"
-    subprocess.run(command + ["--backend-self-test", wine_path(fixture),
-                              "--self-test-report", "Z:" + str(report).replace("/", "\\")],
-                   check=True, timeout=90)
+    process = subprocess.run(command + ["--backend-self-test", wine_path(fixture),
+                                       "--self-test-report", "Z:" + str(report).replace("/", "\\")],
+                             timeout=90)
     result = json.loads(report.read_text())
+    print(json.dumps(result, indent=2), flush=True)
+    assert process.returncode == 0, result
     assert result["success"] and result["helper_pointer_bits"] == 64, result
-    print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
