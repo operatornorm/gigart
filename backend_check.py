@@ -31,8 +31,18 @@ def protection(reader, address):
     function.argtypes = [w.HANDLE, ctypes.c_void_p, ctypes.POINTER(Information), ctypes.c_size_t]
     function.restype = ctypes.c_size_t
     info = Information()
-    if function(reader.handle, address, ctypes.byref(info), ctypes.sizeof(info)) != ctypes.sizeof(info):
-        raise Rejected("Cannot inspect fixture memory protection.")
+    # VirtualQueryEx needs QUERY_INFORMATION. The actual writer intentionally
+    # has only QUERY_LIMITED_INFORMATION; do not alter its tested access mask.
+    query = reader.api.OpenProcess(0x400, False, reader.proc_id)
+    if not query:
+        raise Rejected("Cannot open an information-only handle to the owned fixture.")
+    try:
+        size = function(query, address, ctypes.byref(info), ctypes.sizeof(info))
+        if size != ctypes.sizeof(info):
+            raise Rejected(f"Cannot inspect fixture memory protection: size {size}, "
+                           f"WinError {ctypes.get_last_error()}.")
+    finally:
+        reader.api.CloseHandle(query)
     return info.Protect
 
 

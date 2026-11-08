@@ -44,6 +44,26 @@ works on the affected PC. Its source and release hashes are preserved in
 [tested-steam-build.json](docs/tested-steam-build.json).
 Automated Windows build/GUI startup and offline transaction checks do not run RE6.
 
+## Desktop Linux with native Steam / Proton preview
+
+The separate [Proton preview](https://github.com/operatornorm/gigart/releases/tag/v0.3.0-proton-preview.1)
+targets the requested **Artix Linux + Proton Experimental** trial. The confirmed
+Windows v0.2.2 release above stays unchanged. The patch instructions and four
+original runtime modules are reused without changes.
+
+Extract the full Linux archive, start RE6 from Steam outside any lobby/round,
+then run `bash ./run-proton.sh` in the extracted folder. Requires native Steam,
+Python 3.10+ and native Protontricks. The script starts the bundled helper in
+**RE6 app 221040's existing Proton environment**, using the actual native Steam
+library path. Click Refresh, then Apply. See [full setup and first-trial steps](docs/PROTON-QUICKSTART.txt).
+
+This is a prerelease with **no live RE6/Proton confirmation yet**. Automated
+checks cover native library discovery, path handling, packaged GUI startup and
+Wine process APIs using an owned 32-bit fixture. They do not execute RE6, Steam
+or Valve Proton. The first live trial needs only Apply and a fresh empty lobby
+capture, without other clients or a round. Flatpak Steam/Protontricks, Deck
+Gaming Mode and custom pure-32-bit prefixes are outside this first trial.
+
 ## Original test kit
 
 The original `native_trial.py` tool is preserved unchanged. It requires an
@@ -286,7 +306,7 @@ remains unbounded; no executable patch bytes changed. See the
 This cloud workspace has the privately supplied executable and returned diagnostic
 reports, not a complete playable RE6 installation, Windows game execution access,
 or four authenticated test clients. It cannot execute the real-client bot suite.
-The three-site patch is reproducible here. The current suite passes **80 tests**
+The three-site patch is reproducible here. The current suite passes **86 tests**
 locally with the private executable, including the new Steam discovery and
 wrapper transaction, inactive-session and diagnostic scene checks. Public CI skips two private-input tests;
 Windows also skips the three Linux-native selector checks and the POSIX symlink
