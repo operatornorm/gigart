@@ -391,3 +391,21 @@ published.
   checks do not exercise the new wrapper against an actual running Steam game.
 - Release packaging includes only the launcher, instructions, frozen build
   manifest and source-commit metadata, with SHA-256 download checksums.
+
+
+## 2026-11-08: normal launcher confirmed; selected scene record correction
+
+- Owner confirms the normal-Steam launcher works on their PC. A friend passes
+  game/code detection but gets the scene refusal at Play Game / Extra Content /
+  Mercenaries screens. Their scene value and selected index are not captured yet.
+- Native getter 0x455380 reads [info + 0x412a4 + [info + 0x20] * 0x3ce4]. The
+  original collector omitted the index. Constructor 0x5682a8 initializes four
+  such records; the setter and scene initialization use the same indexed layout.
+- Version 0.2.1 reads the selected bounded record and rechecks root/index. It
+  retains the original stage-1102/session/player/transaction guards and the exact
+  tested patch bytes. Invalid or changing reads have no record-zero fallback.
+- Added read-only JSON export through Save diagnostics. The four original runtime
+  source files remain frozen; the corrected lookup is in the normal-Steam wrapper.
+- All 74 local tests pass with private input, including stale-record regressions
+  in both directions and verification of native getter/constructor bytes. The
+  affected friend's first live confirmation of the correction remains pending.

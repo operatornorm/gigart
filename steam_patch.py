@@ -11,10 +11,11 @@ import sys
 
 from native_trial import (WindowsTrialProcess, apply_transaction, mutation_plan,
                           require_idle_menu, validate_process)
+from menu_state import selected_scene
 from patch_candidate import ROOT, Rejected, load_manifest
 from probe_windows import WindowsReader, snapshot
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 APP_ID = "221040"
 
 
@@ -212,7 +213,26 @@ def code_state(reader, base, disk, spec):
     raise Rejected("Live code differs from both supported states. Restart RE6 with other trainers off.")
 
 
+def launcher_snapshot(read, base, spec, disk):
+    observation = snapshot(read, base, spec, disk)
+    scene = selected_scene(read, base, spec)
+    # Preserve the original kit's observation for diagnosis, but use the native
+    # selected record for the menu guard. The frozen collector remains unchanged.
+    observation["legacy_unindexed_stage_field_candidate"] = observation["stage_field_candidate"]
+    observation["scene_selection"] = scene
+    observation["stage_field_candidate"] = scene["stage"]
+    return observation
+
+
 def menu_check(reader, base, spec, observation):
+    scene = observation.get("scene_selection")
+    if (scene is None or scene["root_stable"] is not True
+            or scene["record_index_stable"] is not True or scene["stage"] is None):
+        raise Rejected("Menu state is unreadable or changing. Wait, refresh, or save diagnostics.")
+    if observation["stage_field_candidate"] != 1102:
+        stage = observation["stage_field_candidate"]
+        raise Rejected(f"Main menu not verified (scene {stage if stage is not None else 'unreadable'}). "
+                       "Return to the main menu and refresh. If already there, save diagnostics.")
     absent = reader.read(base + spec["probe_candidates"]["player_manager_root_rva"], 4) == b"\0" * 4
     require_idle_menu(observation, manager_absent=absent)
 
@@ -251,18 +271,19 @@ def run_action(action="inspect"):
             # All original writer, pause, state, guard and rollback logic is reused.
             with reader.suspended():
                 base, disk = validate_steam_process(reader, spec, installs)
-                before = snapshot(reader.read, base, spec, disk)
+                before = launcher_snapshot(reader.read, base, spec, disk)
                 menu_check(reader, base, spec, before)
                 plans = mutation_plan(reader.read, base, disk, spec, restore=action == "restore")
                 apply_transaction(reader.read, reader.write_code, plans)
                 completed = True
                 report["before"] = before
-                report["after"] = snapshot(reader.read, base, spec, disk)
+                report["after"] = launcher_snapshot(reader.read, base, spec, disk)
             state = "applied" if action == "apply" else "original"
             can_change, reason = True, "Ready at the main menu."
         else:
             state = code_state(reader, base, disk, spec)
-            observation = snapshot(reader.read, base, spec, disk)
+            observation = launcher_snapshot(reader.read, base, spec, disk)
+            report["observation"] = observation
             try:
                 menu_check(reader, base, spec, observation)
                 can_change, reason = True, "Ready at the main menu."
@@ -290,13 +311,26 @@ def run_action(action="inspect"):
                 audit.close()
 
 
+def save_diagnostics(destination):
+    destination = Path(destination)
+    if destination.suffix.lower() != ".json":
+        raise Rejected("Choose a new .json file for diagnostics.")
+    report = run_action("inspect")  # Opens WindowsReader only; no writer or pause.
+    report.update(schema=1, access="READ ONLY", gameplay_test=False)
+    payload = json.dumps(report, indent=2, allow_nan=False)
+    # Refuse to overwrite any existing file, including game files or saves.
+    with destination.open("x", encoding="utf-8") as stream:
+        stream.write(payload + "\n")
+    return destination
+
+
 def gui(smoke_test=False):
     import tkinter as tk
-    from tkinter import ttk
+    from tkinter import filedialog, ttk
     root = tk.Tk()
     root.title(f"RE6 Mercenaries Patch {VERSION}")
-    root.geometry("660x480")
-    root.minsize(640, 460)
+    root.geometry("660x500")
+    root.minsize(640, 480)
     frame = ttk.Frame(root, padding=22)
     frame.pack(fill="both", expand=True)
     ttk.Label(frame, text="RE6 Mercenaries Patch", font=("Segoe UI", 18, "bold")).pack(anchor="w")
@@ -329,11 +363,34 @@ def gui(smoke_test=False):
             status.set(str(exc))
         finally:
             refresh.configure(state="normal")
+            diagnostics.configure(state="normal")
+
+    def export_diagnostics():
+        stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        destination = filedialog.asksaveasfilename(
+            parent=root, title="Save read-only RE6 diagnostics",
+            initialfile=f"re6-diagnostics-{stamp}.json", defaultextension=".json",
+            filetypes=[("JSON report", "*.json")])
+        if not destination:
+            return
+        for button in buttons:
+            button.configure(state="disabled")
+        status.set("Reading RE6 diagnostics…")
+        root.update_idletasks()
+        try:
+            saved = save_diagnostics(destination)
+            status.set(f"Read-only diagnostics saved: {saved}. Click Refresh to check RE6 again.")
+        except (OSError, ValueError, AttributeError) as exc:
+            status.set(str(exc))
+        finally:
+            refresh.configure(state="normal")
+            diagnostics.configure(state="normal")
 
     refresh = ttk.Button(controls, text="Refresh", command=lambda: perform("inspect"))
     apply = ttk.Button(controls, text="Apply", state="disabled", command=lambda: perform("apply"))
     restore = ttk.Button(controls, text="Restore", state="disabled", command=lambda: perform("restore"))
-    buttons = (refresh, apply, restore)
+    diagnostics = ttk.Button(controls, text="Save diagnostics…", command=export_diagnostics)
+    buttons = (refresh, apply, restore, diagnostics)
     for button in buttons:
         button.pack(side="left", padx=(0, 10))
     ttk.Label(frame, text="Apply once per game launch. Closing RE6 restores original code.\n"
@@ -351,13 +408,20 @@ def main():
     actions = parser.add_mutually_exclusive_group()
     for action in ("inspect", "apply", "restore", "self-test"):
         actions.add_argument(f"--{action}", action="store_true")
+    actions.add_argument("--diagnostics", type=Path, metavar="REPORT.json",
+                         help="Save a read-only report, including selected-scene diagnostics.")
     args = parser.parse_args()
     if args.self_test:
         pinned_manifest()
         running_processes()  # Enumerate only; never open or write a game process.
         gui(smoke_test=True)
         return
-    if args.inspect or args.apply or args.restore:
+    if args.diagnostics is not None:
+        try:
+            save_diagnostics(args.diagnostics)
+        except (OSError, ValueError, AttributeError) as exc:
+            parser.exit(1, f"Stopped: {exc}\n")
+    elif args.inspect or args.apply or args.restore:
         try:
             result = run_action("apply" if args.apply else "restore" if args.restore else "inspect")
             if sys.stdout is not None:

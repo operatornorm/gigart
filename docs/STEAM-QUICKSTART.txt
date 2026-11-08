@@ -1,4 +1,4 @@
-RE6 Mercenaries Patch 0.2.0
+RE6 Mercenaries Patch 0.2.1
 
 WHAT YOU NEED
 Windows 10/11 (64-bit), Steam, and the supported original RE6 v1.1.0 executable.
@@ -12,8 +12,8 @@ HOST INSTRUCTIONS
 1. Extract the download anywhere outside the game folder.
 2. Turn Fluffy's trainer off. If it was active in this RE6 session, restart RE6.
    The mod manager can remain open with its trainer off.
-3. Start Resident Evil 6 normally through Steam. Stay at the main menu, outside
-   any lobby or round.
+3. Start Resident Evil 6 normally through Steam. Load the save and reach the
+   menu with Play Game / Extra Content / Options, outside any lobby or round.
 4. Open RE6MercenariesPatch.exe. Click Refresh, then Apply.
 5. After it says "Patch applied", create a fresh Mercenaries lobby. Use standard
    Mercenaries to gather the group, then select your desired mode in the game.
@@ -40,6 +40,11 @@ IF SOMETHING IS REFUSED
   own mods before choosing that Steam operation. Do not substitute other hashes.
 - "Live code differs": restart RE6 with other trainers off.
 - "Host/join session ... active": leave the lobby; restart RE6 if it persists.
+- "Main menu not verified": return to the Play Game / Extra Content menu and
+  refresh. Version 0.2.1 corrects a scene lookup that previously always used
+  record zero. If still refused, click Save diagnostics, choose a new JSON
+  file, and share it with the developer. Apply remains disabled on an unknown
+  or changing menu state. Do not start a round to collect this report.
 - "Access is denied": run the game and this launcher under the same Windows
   user and elevation level. Administrator rights are not normally required.
 - A partial-write or rollback error: close RE6 before trying again.
@@ -59,9 +64,10 @@ automatic download or telemetry is installed. Local action logs are kept at:
 %LOCALAPPDATA%\RE6MercenariesPatch\logs
 
 The launcher has automated Windows build, GUI startup and offline transaction
-checks. Applying this new launcher to an actual Steam game is not covered by
-those automated checks; the original command-line tool supplied the live
-three-player gameplay result. The original tool is preserved in the source.
+checks. The owner confirms version 0.2.0 works on their normal Steam installation.
+Version 0.2.1 corrects selected-record scene recognition; the affected friend's
+first live run remains unverified. The original command-line tool supplied the
+live three-player gameplay result and is preserved in the source.
 
 Source, tested build and detailed evidence:
 https://github.com/operatornorm/gigart

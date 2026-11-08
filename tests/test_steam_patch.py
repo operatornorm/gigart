@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -107,11 +108,21 @@ class WrapperTransactionTests(unittest.TestCase):
         self.pause_count = 0
         self.validation_count = 0
         self.observation = menu_observation()
+        self.info_root = 0x21000000
+        self.info_index = 0
+        self.record_stages = [1102] * 4
 
     def close(self):
         self.closed = True
 
     def read(self, address, size):
+        if address == 0x400000 + self.spec["probe_candidates"]["game_info_root_rva"]:
+            return struct.pack("<I", self.info_root)
+        if address == self.info_root + 0x20:
+            return struct.pack("<I", self.info_index)
+        for index, stage in enumerate(self.record_stages):
+            if address == self.info_root + 0x412A4 + index * 0x3CE4:
+                return struct.pack("<I", stage)
         if address == 0x400000 + self.spec["probe_candidates"]["player_manager_root_rva"]:
             return b"\0" * 4
         return self.memory.read(address, size)
@@ -133,7 +144,7 @@ class WrapperTransactionTests(unittest.TestCase):
         self.validation_count += 1
         return 0x400000, self.original
 
-    def action(self, action, logs):
+    def action(self, action, logs, run_action=launcher.run_action):
         with patch.multiple(launcher, pinned_manifest=lambda: self.spec, steam_roots=lambda: [],
                             discover_installs=lambda _: [Path("/steam/BH6.exe")],
                             running_processes=lambda: [(10, "BH6.exe")],
@@ -141,7 +152,7 @@ class WrapperTransactionTests(unittest.TestCase):
                             validate_steam_process=self.validate,
                             snapshot=lambda *args: copy.deepcopy(self.observation),
                             audit_directory=lambda: logs):
-            return launcher.run_action(action)
+            return run_action(action)
 
     def test_apply_restore_reuses_transaction_and_does_not_change_disk(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -166,6 +177,62 @@ class WrapperTransactionTests(unittest.TestCase):
         self.assertEqual(self.pause_count, 1)
         self.assertFalse(self.paused)
         self.assertTrue(self.closed)
+
+    def test_nonzero_record_menu_can_apply_exact_patch_when_record_zero_is_stale(self):
+        self.info_index = 1
+        self.record_stages[0] = 0
+        self.observation["stage_field_candidate"] = 0
+        with tempfile.TemporaryDirectory() as directory:
+            inspection = self.action("inspect", Path(directory))
+            self.assertTrue(inspection["can_change"])
+            observation = inspection["observation"]
+            self.assertEqual(observation["stage_field_candidate"], 1102)
+            self.assertEqual(observation["legacy_unindexed_stage_field_candidate"], 0)
+            self.assertEqual(observation["scene_selection"]["record_index"], 1)
+            self.action("apply", Path(directory))
+        self.assertEqual(self.memory.data, self.candidate)
+        self.assertFalse(self.paused)
+
+    def test_stale_record_zero_menu_cannot_allow_writes_during_selected_gameplay(self):
+        self.info_index = 1
+        self.record_stages[1] = 1212
+        with tempfile.TemporaryDirectory() as directory:
+            inspection = self.action("inspect", Path(directory))
+            self.assertFalse(inspection["can_change"])
+            self.assertIn("1212", inspection["reason"])
+            with self.assertRaisesRegex(Rejected, "Main menu not verified"):
+                self.action("apply", Path(directory))
+        self.assertEqual(self.memory.writes, [])
+        self.assertFalse(self.paused)
+
+    def test_diagnostics_export_is_read_only_and_records_the_rejected_scene(self):
+        self.info_index = 2
+        self.record_stages[2] = 1212
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "report.json"
+            with patch.object(launcher, "run_action", side_effect=lambda action: self.action(action, Path(directory))) as run:
+                launcher.save_diagnostics(destination)
+                run.assert_called_once_with("inspect")
+            report = json.loads(destination.read_text())
+            self.assertEqual(report["access"], "READ ONLY")
+            self.assertEqual(report["launcher_version"], launcher.VERSION)
+            self.assertFalse(report["can_change"])
+            self.assertEqual(report["observation"]["scene_selection"]["record_index"], 2)
+            self.assertEqual(report["observation"]["stage_field_candidate"], 1212)
+        self.assertEqual(self.memory.writes, [])
+        self.assertEqual(self.pause_count, 0)
+
+    def test_diagnostics_cannot_overwrite_files_or_use_non_json_destination(self):
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "existing.json"
+            destination.write_text("keep")
+            with patch.object(launcher, "run_action", return_value={}) as run:
+                with self.assertRaisesRegex(Rejected, ".json"):
+                    launcher.save_diagnostics(destination.with_suffix(".exe"))
+                run.assert_not_called()
+                with self.assertRaises(FileExistsError):
+                    launcher.save_diagnostics(destination)
+            self.assertEqual(destination.read_text(), "keep")
 
     def test_inspection_in_occupied_lobby_is_read_only_and_keeps_applied_status(self):
         self.memory.data[:] = self.candidate
