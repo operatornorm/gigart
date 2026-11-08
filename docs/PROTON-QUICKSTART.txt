@@ -4,7 +4,7 @@ STATUS
 The Windows v0.2.2 release is confirmed by the user and stays unchanged:
 https://github.com/operatornorm/gigart/releases/tag/v0.2.2
 This separate preview needs its first live RE6/Proton verification. Automated
-checks use Wine and a synthetic 32-bit process; they do not run RE6 or Steam.
+checks pass with Wine and a synthetic 32-bit process; they do not run RE6 or Steam.
 
 REQUIREMENTS
 First requested live target: Artix Linux with Proton Experimental selected for RE6.

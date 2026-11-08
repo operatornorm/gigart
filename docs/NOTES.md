@@ -437,3 +437,26 @@ published.
   tested-steam-build.json. The release and tag are retained unchanged.
 - Next requested target is desktop Linux with native Steam running RE6 through
   Proton. There is no Linux/Proton gameplay observation yet.
+
+
+## 2026-11-08: native-Steam Proton preview for Artix / Experimental
+
+- The first requested Linux target is Artix with native Steam and Proton
+  Experimental. The confirmed Windows v0.2.2 tag and release remain unchanged;
+  the remote published checksums still match tested-steam-build.json.
+- Added a native Python/shell entry point using Protontricks app221040, existing
+  prefix checks, original executable identity and explicit native library mapping
+  through Proton's standard Z: drive. Explicit library selection is accepted
+  only inside Wine; the usual Windows registry path selection stays the default.
+- The Wine helper reuses the original four runtime modules and the exact three
+  patch records. Existing inactive-session and transaction checks remain intact.
+  Native installation discovery and helper checksums precede any helper launch.
+- All86 tests pass locally with private input. Public Linux/Windows builds pass
+  with their private/platform skips. Wine9 GUI, native-library mapping and the
+  original writer against an owned32-bit fixture all pass: suspension, read-only
+  page write/readback, exact undo, protection restore and resumed progress.
+  CI run42435270149/job128592819154 supplies this synthetic backend evidence.
+- The protection monitor uses a separate query-information handle; the actual
+  writer's tested access mask is unchanged. No game, Steam account or Proton
+  runtime was used for the automated fixture. Live RE6/Proton confirmation remains
+  pending; the prerelease includes a two-diagnostic first-trial protocol.
