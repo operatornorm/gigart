@@ -19,6 +19,7 @@ def native_steam_roots(home, environ):
         if environ.get(name):
             roots.append(Path(environ[name]))
     roots.extend([Path(environ.get("XDG_DATA_HOME", str(home / ".local/share"))) / "Steam",
+                  home / ".local/share/Steam",
                   home / ".steam/steam", home / ".steam/root"])
     return list(dict.fromkeys(path.resolve() for path in roots if path.is_dir()))
 
@@ -31,11 +32,21 @@ def wine_path(path):
     return "Z:" + str(path).replace("/", "\\")
 
 
-def build_command(roots, bundle, environ, launch_program):
+def build_command(roots, bundle, environ, launch_program, game_dir=None):
     spec = pinned_manifest()
     installs = discover_installs(roots)
-    if len(installs) != 1:
-        raise Rejected("Find exactly one installed RE6 copy. Use --steam-dir for its native Steam library.")
+    if game_dir is not None:
+        selected = (Path(game_dir).expanduser() / "BH6.exe").resolve(strict=True)
+        installs = [path for path in installs if path.resolve() == selected]
+        if not installs:
+            raise Rejected("The selected --game-dir is not a registered RE6 installation in these Steam libraries.")
+    if not installs:
+        searched = ", ".join(str(Path(root)) for root in roots) or "no existing Steam roots"
+        raise Rejected(f"No registered RE6 installation found. Searched: {searched}. "
+                       "Use --steam-dir with the Steam client folder containing steamapps.")
+    if len(installs) > 1:
+        paths = "\n".join(f"  {path}" for path in installs)
+        raise Rejected(f"Found {len(installs)} registered RE6 copies; select one with --game-dir:\n{paths}")
     executable = installs[0]
     candidate_bytes(executable.read_bytes(), spec)
     library = executable.parents[3]
@@ -53,7 +64,8 @@ def build_command(roots, bundle, environ, launch_program):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--steam-dir", type=Path, help="Optional native Steam root/library path.")
+    parser.add_argument("--steam-dir", type=Path, help="Optional native Steam client root (containing steamapps).")
+    parser.add_argument("--game-dir", type=Path, help="Select the RE6 folder opened by Steam's Browse local files.")
     parser.add_argument("--dry-run", action="store_true", help="Validate paths and print the launch command without running it.")
     args = parser.parse_args()
     try:
@@ -67,7 +79,7 @@ def main():
         if args.steam_dir:
             launch_environ["STEAM_DIR"] = str(args.steam_dir.resolve(strict=True))
         roots = [args.steam_dir] if args.steam_dir else native_steam_roots(Path.home(), launch_environ)
-        command = build_command(roots, ROOT, launch_environ, program)
+        command = build_command(roots, ROOT, launch_environ, program, game_dir=args.game_dir)
         if args.dry_run:
             print(shlex.join(command))
             return

@@ -460,3 +460,22 @@ published.
   writer's tested access mask is unchanged. No game, Steam account or Proton
   runtime was used for the automated fixture. Live RE6/Proton confirmation remains
   pending; the prerelease includes a two-diagnostic first-trial protocol.
+
+
+## 2026-11-08: dual-boot discovery selects the Linux game folder explicitly
+
+- User's native Steam client root, app221040 manifest, install-dir field and
+  BH6.exe are all present under ~/.local/share/Steam. Discovery returns two
+  registered copies: that Linux library and another on a mounted Windows drive.
+  The preview's single generic error obscured this distinction.
+- Added --game-dir to select an already-registered executable before the exact
+  hash/prefix checks. --steam-dir continues to choose the Steam client root for
+  Protontricks. No Windows installation or library configuration is changed.
+- Zero-copy and multiple-copy failures now have distinct messages with searched
+  roots or candidate paths. Also retained the standard ~/.local/share/Steam
+  fallback when XDG_DATA_HOME points elsewhere; that is a separate source defect,
+  not the confirmed cause of this user's two-copy result.
+- All90 local tests pass with private input, including dual-boot selection,
+  rejection of unregistered/modified targets and custom-XDG root discovery.
+  This is a compatible Linux-only script update; the existing preview helper
+  executable and patch bytes remain unchanged.

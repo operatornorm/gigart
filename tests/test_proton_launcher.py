@@ -38,9 +38,10 @@ class ProtonLauncherTests(unittest.TestCase):
         (self.bundle / "proton-bundle.json").write_text(json.dumps({
             "helper_sha256": hashlib.sha256(self.helper.read_bytes()).hexdigest()}))
 
-    def command(self, environ=None):
+    def command(self, environ=None, game_dir=None):
         with patch.object(linux, "pinned_manifest", return_value=self.spec):
-            return linux.build_command([self.library], self.bundle, environ or {}, "/usr/bin/protontricks-launch")
+            return linux.build_command([self.library], self.bundle, environ or {}, "/usr/bin/protontricks-launch",
+                                       game_dir=game_dir)
 
     def test_same_app_prefix_and_library_are_passed_without_shell_interpretation(self):
         command = self.command()
@@ -77,6 +78,44 @@ class ProtonLauncherTests(unittest.TestCase):
         (xdg / "Steam").mkdir(parents=True)
         roots = linux.native_steam_roots(home, {"XDG_DATA_HOME": str(xdg), "STEAM_DIR": str(xdg / "Steam")})
         self.assertEqual(roots, [(xdg / "Steam").resolve()])
+
+    def test_custom_xdg_does_not_hide_standard_steam_location(self):
+        home = self.root / "User home"
+        standard = home / ".local/share/Steam"
+        standard.mkdir(parents=True)
+        (home / ".steam").mkdir()
+        (home / ".steam/steam").symlink_to(standard, target_is_directory=True)
+        (home / ".steam/root").symlink_to(standard, target_is_directory=True)
+        roots = linux.native_steam_roots(home, {"XDG_DATA_HOME": str(home / "Custom data")})
+        self.assertEqual(roots, [standard.resolve()])
+
+    def test_no_install_and_multiple_installs_have_distinct_useful_errors(self):
+        with patch.object(linux, "discover_installs", return_value=[]):
+            with self.assertRaisesRegex(Rejected, "No registered RE6.*Searched:"):
+                self.command()
+        with patch.object(linux, "discover_installs", return_value=[self.executable, Path("/other/BH6.exe")]):
+            with self.assertRaisesRegex(Rejected, "Found 2 registered RE6 copies") as raised:
+                self.command()
+            self.assertIn(str(self.executable), str(raised.exception))
+            self.assertIn("/other/BH6.exe", str(raised.exception))
+
+    def test_explicit_game_folder_selects_linux_copy_among_dual_boot_libraries(self):
+        other = self.root / "Windows library/steamapps/common/Resident Evil 6/BH6.exe"
+        other.parent.mkdir(parents=True)
+        other.write_bytes(self.original)
+        with patch.object(linux, "discover_installs", return_value=[other, self.executable]):
+            command = self.command(game_dir=self.executable.parent)
+        self.assertEqual(command[-1], linux.wine_path(self.library))
+        self.assertEqual(self.executable.read_bytes(), self.original)
+        self.assertEqual(other.read_bytes(), self.original)
+
+    def test_game_folder_selection_does_not_bypass_registration_or_hash(self):
+        with patch.object(linux, "discover_installs", return_value=[]):
+            with self.assertRaisesRegex(Rejected, "not a registered"):
+                self.command(game_dir=self.executable.parent)
+        self.executable.write_bytes(b"unsupported executable")
+        with self.assertRaisesRegex(Rejected, "Unsupported executable"):
+            self.command(game_dir=self.executable.parent)
 
     def test_explicit_library_is_wine_only_and_still_requires_steam_manifest(self):
         with patch.object(wine, "wine_version", side_effect=Rejected("Wine required")):
