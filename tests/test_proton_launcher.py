@@ -103,9 +103,12 @@ class ProtonLauncherTests(unittest.TestCase):
         other = self.root / "Windows library/steamapps/common/Resident Evil 6/BH6.exe"
         other.parent.mkdir(parents=True)
         other.write_bytes(self.original)
+        environment = {"STEAM_DIR": str(self.library)}
         with patch.object(linux, "discover_installs", return_value=[other, self.executable]):
-            command = self.command(game_dir=self.executable.parent)
+            command = self.command(environ=environment, game_dir=self.executable.parent)
         self.assertEqual(command[-1], linux.wine_path(self.library))
+        self.assertEqual(environment["STEAM_COMPAT_DATA_PATH"], str(self.prefix.parent.resolve()))
+        self.assertEqual(environment["STEAM_DIR"], str(self.library))
         self.assertEqual(self.executable.read_bytes(), self.original)
         self.assertEqual(other.read_bytes(), self.original)
 

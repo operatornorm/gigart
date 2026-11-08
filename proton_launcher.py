@@ -33,6 +33,7 @@ def wine_path(path):
 
 
 def build_command(roots, bundle, environ, launch_program, game_dir=None):
+    """Build argv and pin the selected prefix in the caller's copied environment."""
     spec = pinned_manifest()
     installs = discover_installs(roots)
     if game_dir is not None:
@@ -59,6 +60,9 @@ def build_command(roots, bundle, environ, launch_program, game_dir=None):
         raise Rejected("Bundled helper checksum differs. Extract a fresh release download.")
     command = [str(launch_program), "--appid", "221040", str(helper),
                "--proton-library", wine_path(library)]
+    # Protontricks must use this same prefix when another Steam library also
+    # advertises app 221040. main passes a copy, never the process environment.
+    environ["STEAM_COMPAT_DATA_PATH"] = str(compat.resolve(strict=True))
     return command
 
 
