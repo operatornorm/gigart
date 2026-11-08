@@ -16,7 +16,7 @@ from patch_candidate import ROOT, Rejected, load_manifest
 from probe_windows import WindowsReader, snapshot
 from session_probe import read_u32
 
-VERSION = "0.2.2"
+VERSION = "0.3.0-proton-preview.1"
 APP_ID = "221040"
 
 
@@ -258,11 +258,19 @@ def audit_directory():
     return directory
 
 
-def run_action(action="inspect"):
+def run_action(action="inspect", proton_library=None):
     if action not in ("inspect", "apply", "restore"):
         raise Rejected("Unknown patch action.")
     spec = pinned_manifest()
-    installs = discover_installs(steam_roots())
+    if proton_library is None:
+        roots = steam_roots()
+        platform = {"kind": "windows"}
+    else:
+        from proton_support import checked_library
+        library, wine_version = checked_library(proton_library)
+        roots = [library]
+        platform = {"kind": "proton", "wine_version": wine_version}
+    installs = discover_installs(roots)
     if not installs:
         raise Rejected("No installed Steam copy of RE6 (app 221040) was found.")
     pid = choose_pid(running_processes())
@@ -275,7 +283,8 @@ def run_action(action="inspect"):
     reader = None
     completed = False
     report = {"launcher_version": VERSION, "action": action,
-              "tested_source": "v0.1.0-tested", "exe_sha256": spec["input_sha256"]}
+              "tested_source": "v0.1.0-tested", "exe_sha256": spec["input_sha256"],
+              "platform": platform}
     try:
         reader = WindowsTrialProcess(pid) if changing else WindowsReader(pid)
         base, disk = validate_steam_process(reader, spec, installs)
@@ -324,11 +333,13 @@ def run_action(action="inspect"):
                 audit.close()
 
 
-def save_diagnostics(destination):
+def save_diagnostics(destination, proton_library=None):
     destination = Path(destination)
     if destination.suffix.lower() != ".json":
         raise Rejected("Choose a new .json file for diagnostics.")
-    report = run_action("inspect")  # Opens WindowsReader only; no writer or pause.
+    # Opens WindowsReader only; no writer or pause.
+    report = (run_action("inspect") if proton_library is None else
+              run_action("inspect", proton_library=proton_library))
     report.update(schema=1, access="READ ONLY", gameplay_test=False)
     payload = json.dumps(report, indent=2, allow_nan=False)
     # Refuse to overwrite any existing file, including game files or saves.
@@ -337,7 +348,7 @@ def save_diagnostics(destination):
     return destination
 
 
-def gui(smoke_test=False):
+def gui(smoke_test=False, proton_library=None):
     import tkinter as tk
     from tkinter import filedialog, ttk
     root = tk.Tk()
@@ -365,7 +376,7 @@ def gui(smoke_test=False):
         status.set("Checking RE6…" if action == "inspect" else "Updating RE6 memory…")
         root.update_idletasks()
         try:
-            result = run_action(action)
+            result = run_action(action, proton_library=proton_library)
             active = result["state"] == "applied"
             status.set(("Patch applied. Host a fresh lobby." if result["can_change"] else
                         "Patch applied. Leave the lobby or round before restoring.") if active else
@@ -391,7 +402,7 @@ def gui(smoke_test=False):
         status.set("Reading RE6 diagnostics…")
         root.update_idletasks()
         try:
-            saved = save_diagnostics(destination)
+            saved = save_diagnostics(destination, proton_library=proton_library)
             status.set(f"Read-only diagnostics saved: {saved}. Click Refresh to check RE6 again.")
         except (OSError, ValueError, AttributeError) as exc:
             status.set(str(exc))
@@ -423,26 +434,54 @@ def main():
         actions.add_argument(f"--{action}", action="store_true")
     actions.add_argument("--diagnostics", type=Path, metavar="REPORT.json",
                          help="Save a read-only report, including selected-scene diagnostics.")
+    actions.add_argument("--backend-self-test", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--self-test-report", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--proton-library", type=Path,
+                        help="Proton only: native Steam library exposed through Wine's Z: drive.")
     args = parser.parse_args()
+    if args.backend_self_test is not None:
+        if args.self_test_report is None:
+            parser.error("Backend self-test needs --self-test-report.")
+        from backend_check import run_check
+        try:
+            result = run_check(args.backend_self_test)
+        except Exception as exc:
+            args.self_test_report.write_text(json.dumps({"success": False, "error": str(exc)}))
+            parser.exit(1)
+        args.self_test_report.write_text(json.dumps(result, indent=2))
+        return
     if args.self_test:
-        pinned_manifest()
-        running_processes()  # Enumerate only; never open or write a game process.
-        gui(smoke_test=True)
+        try:
+            pinned_manifest()
+            running_processes()  # Enumerate only; never open or write a game process.
+            if args.proton_library is not None:
+                from proton_support import checked_library
+                library, _ = checked_library(args.proton_library)
+                if not discover_installs([library]):
+                    raise Rejected("Synthetic Steam library was not discovered.")
+            gui(smoke_test=True, proton_library=args.proton_library)
+        except Exception as exc:
+            if args.self_test_report is not None:
+                args.self_test_report.write_text(json.dumps({"success": False, "error": str(exc)}))
+            parser.exit(1)
+        if args.self_test_report is not None:
+            args.self_test_report.write_text(json.dumps({"success": True, "kind": "startup only"}))
         return
     if args.diagnostics is not None:
         try:
-            save_diagnostics(args.diagnostics)
+            save_diagnostics(args.diagnostics, proton_library=args.proton_library)
         except (OSError, ValueError, AttributeError) as exc:
             parser.exit(1, f"Stopped: {exc}\n")
     elif args.inspect or args.apply or args.restore:
         try:
-            result = run_action("apply" if args.apply else "restore" if args.restore else "inspect")
+            result = run_action("apply" if args.apply else "restore" if args.restore else "inspect",
+                                proton_library=args.proton_library)
             if sys.stdout is not None:
                 print(json.dumps(result, indent=2, allow_nan=False))
         except (OSError, ValueError, AttributeError) as exc:
             parser.exit(1, f"Stopped: {exc}\n")
     else:
-        gui()
+        gui(proton_library=args.proton_library)
 
 
 if __name__ == "__main__":

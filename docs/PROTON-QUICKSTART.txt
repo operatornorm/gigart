@@ -1,0 +1,68 @@
+RE6 Mercenaries Patch - desktop Linux / native Steam Proton preview
+
+STATUS
+The Windows v0.2.2 release is confirmed by the user and stays unchanged:
+https://github.com/operatornorm/gigart/releases/tag/v0.2.2
+This separate preview needs its first live RE6/Proton verification. Automated
+checks use Wine and a synthetic 32-bit process; they do not run RE6 or Steam.
+
+REQUIREMENTS
+First requested live target: Artix Linux with Proton Experimental selected for RE6.
+- Desktop Linux x86-64 with native Steam and RE6 installed (app 221040).
+- The supported original v1.1.0 executable, SHA-256:
+  b8bceaf09272d5f30b89940737763afa6dfb78647c81165af1aa8a10d0afeb35
+- Python 3.10 or later (standard library only for the Linux launcher).
+- Native Protontricks, including its protontricks-launch command. Install it
+  through your distribution or follow the upstream instructions:
+  https://github.com/Matoking/protontricks#installation
+  Use a current version supporting the installed Proton Experimental build.
+- A normal 64-bit Proton prefix for RE6, already initialized by Steam.
+
+FIRST TRIAL
+1. Extract this complete archive outside the game folder. Keep all its files
+   together. Turn other trainers off; restart RE6 if one was active.
+2. Start RE6 normally from Steam using the Proton version selected for RE6.
+   Stay outside any lobby or round. No particular screen/menu is required.
+3. Open a terminal in the extracted folder and run:
+
+   bash ./run-proton.sh
+
+4. In the patch window, click Refresh. If the supported game is recognized and
+   Apply is enabled, click Apply. Save diagnostics afterward for the first trial.
+5. Create a fresh standard Mercenaries lobby. Save another diagnostic there,
+   without starting a round, to check six-slot initialization under Proton.
+6. Close RE6 to undo the memory patch, or leave the lobby and use Restore.
+
+No additional human players are needed for this first Linux compatibility
+check. Keep the diagnostic JSON files for the developer. The original Windows
+three-player gameplay result does not establish Proton multiplayer behavior.
+
+HOW IT LAUNCHES
+The Linux script finds the native Steam library and checks the exact game hash.
+It then uses protontricks-launch --appid 221040 to run the bundled Windows helper
+inside RE6's existing Proton environment. It supplies the actual native library
+path using Proton's standard Z: mapping. The helper uses the same tested patch
+bytes, code/context guards, inactive-session checks, suspended transaction,
+readback and rollback. It does not change game files, saves, timer, game mode,
+Steam checks or Steam registry paths. Closing RE6 discards the patch.
+
+CUSTOM PATHS / TROUBLESHOOTING
+- For a nonstandard native Steam client root:
+  bash ./run-proton.sh --steam-dir "/path/to/Steam"
+- To check paths and print the command without launching the helper:
+  bash ./run-proton.sh --dry-run
+- A custom STEAM_COMPAT_DATA_PATH must be set to the same path used for RE6.
+- If the helper cannot see an already-running game, confirm Protontricks uses
+  the same Proton version/prefix as Steam. Do not add this helper as a separate
+  non-Steam game; that creates a different prefix. Do not run it using system
+  Wine, as root, or using sudo. No ptrace setting changes are required.
+- If a game hash differs or code is already modified, it is refused. Do not
+  substitute a different hash or enable other trainers to get past the check.
+- No Wine/proton DLL overrides, prefix migrations, package installation or
+  game launch-option edits are performed by this launcher. Protontricks/Wine
+  may perform their ordinary prefix/runtime setup when starting an application.
+
+This first preview targets native Steam. Flatpak Steam, Flatpak Protontricks,
+Steam Deck Gaming Mode and custom pure-32-bit prefixes are not covered.
+The Linux launcher requires Python and Protontricks; its bundled Windows helper
+includes its own Python runtime. It does not download or install dependencies.
