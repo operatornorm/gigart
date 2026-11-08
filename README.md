@@ -1,42 +1,33 @@
-# RE6 v1.1.0 Mercenaries investigation kit
+# RE6 v1.1.0 Mercenaries patch
 
-**Research candidate, not a finished multiplayer patch.** Three-player No Mercy
-is now a success target; four-player support and full map coverage remain
-separate goals. Three-player gameplay, four-player No Mercy,
-all maps, deaths/results and subsequent rounds have not been tested. No claim of
-working gameplay is made. A returned Windows main-menu capture verifies that the
-collector can read the pinned live image and its three original code spans. It
-does not validate multiplayer behavior. A subsequent 20-sample solo No Mercy
-capture on Urban Chaos correlates the native timer with the visible countdown.
+**Three-player standard Mercenaries and No Mercy gameplay has been reported
+working by the host and two friends.** They reported no identifiable problems
+with the timer, score, items or enemy spawns. Supplied host captures separately
+verify admission progressing from two occupied slots to three with the exact
+patch bytes active. Four or more real players and every map remain unverified.
 
-This kit contains original analysis tools and a minimal patch description, not
-BH6.exe, a modified game executable, game assets or Fluffy's software. It installs
-nothing and does not launch the game, Steam or a trainer.
+The exact source kit used for those sessions is frozen at
+[`v0.1.0-tested`](https://github.com/operatornorm/gigart/tree/v0.1.0-tested)
+(commit `ea19adebe0d2151fe81868f211ce8b9821d5c22b`). The four runtime modules
+and all three patch records remain byte-for-byte identical to that kit; their
+hashes and the target identity are recorded in [tested-build.json](docs/tested-build.json).
+See [the evidence and its limits](docs/THREE-PLAYER-RESULT.md).
 
-## Next experiment: lobby expansion
+This repository contains source tools and a patch description, without the game
+executable, assets or Fluffy's software. The patch writes only the running game's
+three code spans. It does not change the game executable on disk, timer, mode,
+Steam checks or saves. Closing RE6 removes the memory changes.
 
-The unchanged solo/lobby baselines are complete. The updated kit now includes
-`native_trial.py`, an experimental **in-memory** apply/restore tool that defaults
-to read-only inspection. First use is a fresh-lobby configuration check on an
-isolated test copy; no round or extra participant is needed. Follow the complete
-[lobby trial instructions](docs/LOBBY-TRIAL.md), including preparation and undo.
+## Original test kit
 
-All **52 offline tests** pass on the current Linux host. Returned Windows reports
-now show the first successful native application and fresh six-slot lobby
-initialization: capacity 6, five free partner entries and distinct randomized
-indices. A subsequent live restore returned all three spans to their exact
-original bytes. Actual extra-client joining and failure rollback remain unverified.
-It does not implement a timer policy or establish four-player No Mercy support.
-The ordinary `probe_windows.py` collector still requests read-only access only.
+The original `native_trial.py` tool is preserved unchanged. It requires an
+isolated game copy and an explicit process ID for writes. Its historical
+[lobby trial instructions](docs/LOBBY-TRIAL.md) and
+[three-client joining plan](docs/THREE-CLIENT-ADMISSION.md) describe the experiments
+leading to the result above. They are not additional tests required to establish
+the reported three-player success.
 
-The next stage is the [three-client joining check](docs/THREE-CLIENT-ADMISSION.md):
-host-only candidate, joining clients initially unmodified, normal Steam invites
-sent to both while the host is alone, then accepted one at a time, staying in
-standard Mercenaries' waiting lobby. Invitation availability and Steam/game
-joinability remain unverified; pending invitations do not override a full lobby.
-No further
-unchanged solo or empty-lobby baseline is needed. This separates admission from
-the later No Mercy gameplay target.
+The ordinary `probe_windows.py` collector requests read-only access only.
 
 ## Current evidence
 

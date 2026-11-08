@@ -1,0 +1,56 @@
+{
+  "version": "v0.1.0-tested",
+  "source_commit": "ea19adebe0d2151fe81868f211ce8b9821d5c22b",
+  "original_kit_sha256": "3e4782499f9e31ee81da5b555f1d4872f59a32c767d46f4bca26c21a5ea55138",
+  "runtime_file_sha256": {
+    "native_trial.py": "3b6b506fd3e74f692dd7fbf07596c7423b4dc7a570c07affda843e9e40a31869",
+    "patch_candidate.py": "892d25444841151a9525108a1bdbea0d549ba56aadbd3dce58f3e1eb4c0a8403",
+    "probe_windows.py": "90201613dff6b1a76fec11741aef82c45f063a18a18753edd2df7f8d23a81715",
+    "session_probe.py": "a158685972a2346b4449deb55b3b21f1bacba73c337665d2148ee46029465f10"
+  },
+  "patch_specification": {
+    "image_base": 4194304,
+    "machine": 332,
+    "size_bytes": 20914128,
+    "input_sha256": "b8bceaf09272d5f30b89940737763afa6dfb78647c81165af1aa8a10d0afeb35",
+    "candidate_sha256": "04a9ccffd76f65806c371c380c5e245125ca532a0725404d071ef317498667fa",
+    "patches": [
+      {
+        "name": "create_capacity",
+        "rva": 6368477,
+        "file_offset": 6365405,
+        "expected_hex": "83c002",
+        "replacement_hex": "83c006",
+        "context_offset": 6365389,
+        "context_hex": "fc3e00008b86780100008bbe7c01000083c0023bc37e2f558d68ffb9203f0000896c24"
+      },
+      {
+        "name": "slot_count",
+        "rva": 6359841,
+        "file_offset": 6356769,
+        "expected_hex": "c7474c02000000",
+        "replacement_hex": "c7474c06000000",
+        "context_offset": 6356753,
+        "context_hex": "600100000000c6876201000000895748c7474c0200000033f6bd3c3f000090b9a4de8601e8f6c7"
+      },
+      {
+        "name": "slot_assignment",
+        "rva": 6359866,
+        "file_offset": 6356794,
+        "expected_hex": "8bc883e10133c0ba01000000d3e285d374094083f10183f8027cec",
+        "replacement_hex": "31d28b4f4cf7f189d1b801000000d3e085c375e2eb059090909090",
+        "context_offset": 6356778,
+        "context_hex": "bd3c3f000090b9a4de8601e8f6c746008bc883e10133c0ba01000000d3e285d374094083f10183f8027cec8b1554f47c01b801000000d3e0890c2a"
+      }
+    ]
+  },
+  "configured_slot_count": 6,
+  "observed_human_players": 3,
+  "reported_modes": [
+    "standard Mercenaries",
+    "Mercenaries No Mercy"
+  ],
+  "validation": "user-reported gameplay; supplied captures independently show two then three occupied host slots",
+  "four_or_more_players_verified": false,
+  "all_maps_verified": false
+}

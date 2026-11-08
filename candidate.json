@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "ANALYSIS CANDIDATE ONLY; NOT GAMEPLAY VALIDATED",
+  "status": "THREE-PLAYER STANDARD AND NO MERCY GAMEPLAY REPORTED; EXACT TESTED PATCH BYTES PRESERVED",
   "target_version_resource": "1.1.0.0",
   "image_base": 4194304,
   "machine": 332,
@@ -37,9 +37,10 @@
     }
   ],
   "runtime_requirements": {
-    "timer_policy": "UNRESOLVED POLICY: mode-root +0x486c countdown observed in solo No Mercy / Urban Chaos; legacy 120.0 freeze not applied or multiplayer-validated",
-    "gameplay_tests_run": false,
-    "all_maps_validated": false
+    "timer_policy": "Native game timer unchanged; three-player standard and No Mercy gameplay reported without identifiable timer issues. No timer freeze required in the reported sessions.",
+    "gameplay_tests_run": true,
+    "all_maps_validated": false,
+    "gameplay_validation_source": "User report of three licensed clients; independent captures establish host admission, not gameplay QA."
   },
   "probe_candidates": {
     "player_manager_root_rva": 20776040,
@@ -81,7 +82,18 @@
       5
     ],
     "candidate_lobby_randomization_is_six_element_permutation": true,
-    "extra_client_join_observed": false
+    "extra_client_join_observed": true,
+    "candidate_occupied_slot_indices": [
+      0,
+      1,
+      2
+    ],
+    "three_client_admission_capture_verified": true,
+    "three_player_gameplay_user_reported": true,
+    "reported_gameplay_modes": [
+      "standard Mercenaries",
+      "Mercenaries No Mercy"
+    ]
   },
   "acceptance_targets": {
     "successful_player_count": 3,
