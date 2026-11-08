@@ -67,8 +67,8 @@ automatic download or telemetry is installed. Local action logs are kept at:
 The launcher has automated Windows build, GUI startup and offline transaction
 checks. The owner confirms version 0.2.0 works on their normal Steam installation.
 Version 0.2.1 still refused the affected friend at scene 904. Version 0.2.2
-removes all scene requirements, while checking for an inactive session. Its
-first live application on that PC remains unverified. The original command-line tool supplied the
+removes all scene requirements, while checking for an inactive session. The user now confirms
+it works on the affected PC. The original command-line tool supplied the
 live three-player gameplay result and is preserved in the source.
 
 Source, tested build and detailed evidence:

@@ -1,0 +1,19 @@
+{
+  "version": "v0.2.2",
+  "source_commit": "f66c5d8cae7cce0ea5cf85502d730ed8ccaf78aa",
+  "source_file_sha256": {
+    "steam_patch.py": "47d9d233d81bf7ef341086ff21766e4f2a0c9831d5fefac203bca78dc2b1d3c3",
+    "menu_state.py": "826576339ac0b5f1738b335a483181349af8a0035543916ea6c1086aaa6da94e",
+    "native_trial.py": "3b6b506fd3e74f692dd7fbf07596c7423b4dc7a570c07affda843e9e40a31869",
+    "patch_candidate.py": "892d25444841151a9525108a1bdbea0d549ba56aadbd3dce58f3e1eb4c0a8403",
+    "probe_windows.py": "90201613dff6b1a76fec11741aef82c45f063a18a18753edd2df7f8d23a81715",
+    "session_probe.py": "a158685972a2346b4449deb55b3b21f1bacba73c337665d2148ee46029465f10",
+    "candidate.json": "883f3b680c6c15322204151eb28b26b4de15771dc354ace663c95d1a70f528a2"
+  },
+  "release_asset_sha256": {
+    "RE6MercenariesPatch-0.2.2-windows-x64.zip": "f26fc09f27d9c01a2394eac40368887e4ff6c88bb271f369788bd76464c803c6",
+    "RE6MercenariesPatch.exe": "3548360e67817c5ae303c52f051eec93106db2467086412fec3136d910650291"
+  },
+  "user_confirmation": "User confirms v0.2.2 resolves the reported scene/menu refusal on the affected PC.",
+  "gameplay_scope": "Original three-player gameplay report remains the gameplay evidence; this confirmation does not establish four or more clients or Linux/Proton support."
+}

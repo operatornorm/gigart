@@ -427,3 +427,13 @@ published.
 - All80 local tests pass with private input. The reported idle scene904 and an
   unreadable scene are accepted; active/unknown state and post-Refresh state
   changes are refused before writes. The affected PC's live result is pending.
+
+
+## 2026-11-08: normal-Steam v0.2.2 confirmed; Proton next
+
+- User confirms v0.2.2 works and requests preserving this exact version on GitHub.
+  Verified remote tag v0.2.2 and main both point to source f66c5d8. The published
+  ZIP/executable checksums and original source hashes are pinned in
+  tested-steam-build.json. The release and tag are retained unchanged.
+- Next requested target is desktop Linux with native Steam running RE6 through
+  Proton. There is no Linux/Proton gameplay observation yet.

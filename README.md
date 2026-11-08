@@ -39,8 +39,9 @@ report showed a stable scene 904 and an inactive session; the earlier indexed
 scene correction did not resolve that refusal. Apply and Restore now require
 readable inactive session/player/slot state, with checks repeated during process
 suspension. Use **Save diagnostics** for any remaining refusal. See
-[the evidence and new conditions](docs/MENU-STATE.md). The new release's live
-application on the affected PC remains unverified.
+[the evidence and new conditions](docs/MENU-STATE.md). The user confirms v0.2.2
+works on the affected PC. Its source and release hashes are preserved in
+[tested-steam-build.json](docs/tested-steam-build.json).
 Automated Windows build/GUI startup and offline transaction checks do not run RE6.
 
 ## Original test kit

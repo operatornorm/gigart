@@ -86,5 +86,4 @@ any write. Transaction failure still rolls back and resumes the process.
 Private-input tests verify the executable and native scene-layout instructions.
 Public CI skips those two tests; Windows additionally skips three Linux-native
 selector tests and the POSIX symlink test. Windows CI builds the executable and
-checks GUI startup without RE6. This release's live application on the affected
-PC remains to be confirmed.
+checks GUI startup without RE6. The user now confirms v0.2.2 resolves the refusal on the affected PC.
