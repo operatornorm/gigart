@@ -295,8 +295,8 @@ def gui(smoke_test=False):
     from tkinter import ttk
     root = tk.Tk()
     root.title(f"RE6 Mercenaries Patch {VERSION}")
-    root.geometry("660x380")
-    root.minsize(600, 360)
+    root.geometry("660x480")
+    root.minsize(640, 460)
     frame = ttk.Frame(root, padding=22)
     frame.pack(fill="both", expand=True)
     ttk.Label(frame, text="RE6 Mercenaries Patch", font=("Segoe UI", 18, "bold")).pack(anchor="w")
@@ -320,8 +320,9 @@ def gui(smoke_test=False):
         try:
             result = run_action(action)
             active = result["state"] == "applied"
-            status.set(("Patch applied. Host a fresh lobby." if active else "Original game code. ")
-                       + ("" if active and result["can_change"] else result["reason"]))
+            status.set(("Patch applied. Host a fresh lobby." if result["can_change"] else
+                        "Patch applied. Return to the main menu to restore.") if active else
+                       "Original game code. " + result["reason"])
             if result["can_change"]:
                 (restore if active else apply).configure(state="normal")
         except (OSError, ValueError, AttributeError) as exc:
